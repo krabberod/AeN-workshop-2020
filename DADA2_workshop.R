@@ -1,3 +1,8 @@
+### 
+# 
+# Example fastq files for the pipeline can be downloaded from here: 
+# https://www.dropbox.com/s/z18dtoaakhnuwwu/fastq.zip?dl=0
+
 ### Install Packages 
 
 install.packages("readr")     # To read and write files
