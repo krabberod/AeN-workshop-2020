@@ -147,6 +147,7 @@ out <- filterAndTrim(fns_R1, filt_R1, fns_R2, filt_R2, truncLen = c(250, 200),
 
 
 #### 5.7 DADA2 ####
+# If you settup allows running multiple threads set multithread = TRUE
 err_R1 <- learnErrors(filt_R1, multithread = FALSE)
 plotErrors(err_R1, nominalQ = TRUE)
 
@@ -162,6 +163,7 @@ names(derep_R1) <- sample.names
 names(derep_R2) <- sample.names
 
 #### 5.7.3 Sequence-variant inference algorithm to the dereplicated data ####
+# If your computer can run multiple threads 
 dada_R1 <- dada(derep_R1, err = err_R1, multithread = FALSE, pool = FALSE)
 dada_R2 <- dada(derep_R2, err = err_R2, multithread = FALSE, pool = FALSE)
 
@@ -217,7 +219,11 @@ seq_out
 Biostrings::writeXStringSet(seq_out, str_c(dada2_dir, "ASV_no_taxo.fasta"),
                             compress = FALSE, width = 20000)
 #### 5.7.9 Assinging taxonomy
-# Tha database is here: https://github.com/vaulot/metabarcodes_tutorials/tree/master/databases
+# The PR2 database can be found here: 
+#  
+# https://github.com/vaulot/metabarcodes_tutorials/tree/master/databases
+# 
+
 
 pr2_file <- paste0(database_dir, "pr2_version_4.72_dada2.fasta.gz")
 taxa <- assignTaxonomy(seqtab.nochim, refFasta = pr2_file, taxLevels = PR2_tax_levels,
