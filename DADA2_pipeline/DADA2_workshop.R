@@ -39,7 +39,9 @@ library("stringr")
 library("kableExtra")  # necessary for nice table formatting with knitr
 
 #### Prepare Directories
-#setwd("../DADA2_workshop") #Define the path to working directory
+#Define the path to working directory if you are not using Rstudio as project
+
+#setwd("path_to_my_directory/DADA2_pipeline")  
 
 
 fastq_dir <- "fastq/"  # fastq directory with the samples we are using
