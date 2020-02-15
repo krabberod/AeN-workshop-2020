@@ -1,6 +1,6 @@
 ###
 #
-# Example fastq files for the pipeline can be downloaded from here:
+# Example fastq files for the pipeline can be downloaded from github or here:
 # https://www.dropbox.com/s/erhdug0lun797iu/fastq.zip?dl=0
 
 ### Install Packages

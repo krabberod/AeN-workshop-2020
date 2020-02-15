@@ -6,7 +6,7 @@ This is a repository connected to Arven etter Nansen - Workshop 2020
 The workshop will take place at the Department of Biosciences in Kristine Bonnevies Hus, Blindernveien 31. You can take the T-bane to Blindern station or the tram to John Collets plass station and walk from there.
 Take the elevator or stairs to 4th floor and we will meet in room 4436.
 
-We will start at 10:00. Please be three in time or inform us if you will be later.
+We will start at 10:00. Please be there in time or inform us if you will be later.
 
 We will together prepare the lunch in the AQUA section lunch room or a meeting room. And it will be served fruits and coffee/the during brakes,
 
