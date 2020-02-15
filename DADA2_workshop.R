@@ -39,7 +39,7 @@ library("stringr")
 library("kableExtra")  # necessary for nice table formatting with knitr
 
 #### Prepare Directories
-setwd("../DADA2_workshop") #Define the path to working directory
+#setwd("../DADA2_workshop") #Define the path to working directory
 
 
 fastq_dir <- "fastq/"  # fastq directory with the samples we are using
@@ -95,18 +95,18 @@ for (i in 1:length(fns_R1)) {
   df <- bind_rows(df, df_one_row)
 }
 
-#knitr::kable(df) # to make html table.
+knitr::kable(df) # to make html table.
 View(df)
 
 #If you want to write the table remove the hashtag and use:
 # write.table(df, file = 'n_seq.txt', sep='\t', row.names = FALSE, na='',
-            quote=FALSE)
+#            quote=FALSE)
 
 
 # plot the histogram with number of sequences
 # in the test-case the histogram will be of little value since everything is subsampled to 10000 seqs.
 ggplot(df, aes(x = n_seq)) + geom_histogram(alpha = 0.5, position = "identity",
-                                            binwidth = 16) + xlim(0, 20 000)
+                                            binwidth = 16) + xlim(9000, 11000)
 
 #### 5.5.3 ####
 for (i in 1:length(fns)) {
