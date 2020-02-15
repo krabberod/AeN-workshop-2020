@@ -1,9 +1,9 @@
-### 
-# 
-# Example fastq files for the pipeline can be downloaded from here: 
+###
+#
+# Example fastq files for the pipeline can be downloaded from here:
 # https://www.dropbox.com/s/erhdug0lun797iu/fastq.zip?dl=0
 
-### Install Packages 
+### Install Packages
 
 install.packages("readr")     # To read and write files
 install.packages("readxl")    # To read excel files
@@ -20,7 +20,7 @@ install.packages("ggplot2")   # To do plots
 if (!requireNamespace("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
 
-BiocManager::install(version = "3.10")
+#BiocManager::install(version = "3.10")
 BiocManager::install(c("dada2", "phyloseq","Biostrings"))
 
 
@@ -38,11 +38,11 @@ library("readr")
 library("stringr")
 library("kableExtra")  # necessary for nice table formatting with knitr
 
-#### Prepare Directories 
+#### Prepare Directories
 setwd("../DADA2_workshop") #Define the path to working directory
 
 
-fastq_dir <- "fastq/"  # fastq directory with the samples we are using 
+fastq_dir <- "fastq/"  # fastq directory with the samples we are using
 database_dir <- "databases/"  # folder with the PR2 database https://github.com/vaulot/metabarcodes_tutorials/tree/master/databases
 
 
@@ -58,7 +58,7 @@ dir.create(dada2_dir)
 dir.create(blast_dir)
 
 #### 5.3 Primers
-primer_set_fwd = c("CCAGCAGCCGCGGTAATTCC", "CCAGCACCCGCGGTAATTCC", "CCAGCAGCTGCGGTAATTCC", 
+primer_set_fwd = c("CCAGCAGCCGCGGTAATTCC", "CCAGCACCCGCGGTAATTCC", "CCAGCAGCTGCGGTAATTCC",
                    "CCAGCACCTGCGGTAATTCC")
 primer_set_rev = c("ACTTTCGTTCTTGATYRATGA")
 primer_length_fwd <- str_length(primer_set_fwd[1])
@@ -66,7 +66,7 @@ primer_length_rev <- str_length(primer_set_rev[1])
 
 #### 5.4 PR2 taxonomic levels
 
-PR2_tax_levels <- c("Kingdom", "Supergroup", "Division", "Class", "Order", "Family", 
+PR2_tax_levels <- c("Kingdom", "Supergroup", "Division", "Class", "Order", "Family",
                     "Genus", "Species")
 
 #### 5.5 Examine fastq files
@@ -84,50 +84,51 @@ sample.names <- sample.names[, 1]
 df <- data.frame()
 
 for (i in 1:length(fns_R1)) {
-  
+
   # use the dada2 function fastq.geometry
   geom <- fastq.geometry(fns_R1[i])
-  
+
   # extract the information on number of sequences and file name
   df_one_row <- data.frame(n_seq = geom[1], file_name = basename(fns_R1[i]))
-  
+
   # add one line to data frame
   df <- bind_rows(df, df_one_row)
 }
 
-knitr::kable(df) # to make html table. 
+#knitr::kable(df) # to make html table.
 View(df)
 
-write.table(df, file = 'n_seq.txt', sep='\t', row.names = FALSE, na='',
+#If you want to write the table remove the hashtag and use:
+# write.table(df, file = 'n_seq.txt', sep='\t', row.names = FALSE, na='',
             quote=FALSE)
 
 
 # plot the histogram with number of sequences
-# in the test-case the histogram will be of little value since everything is subsampled to 10000 seqs. 
-ggplot(df, aes(x = n_seq)) + geom_histogram(alpha = 0.5, position = "identity", 
-                                            binwidth = 16) + xlim(9000, 11000)
+# in the test-case the histogram will be of little value since everything is subsampled to 10000 seqs.
+ggplot(df, aes(x = n_seq)) + geom_histogram(alpha = 0.5, position = "identity",
+                                            binwidth = 16) + xlim(0, 20 000)
 
-#### 5.5.3 #### 
+#### 5.5.3 ####
 for (i in 1:length(fns)) {
-  
+
   # Use dada2 function to plot quality
   p1 <- plotQualityProfile(fns[i])
-  
+
   # Only plot on screen for first 2 files
   if (i <= 2) {
     print(p1)
   }
-  
+
   # save the file as a pdf file (uncomment to execute)
-  p1_file <- paste0(qual_dir, basename(fns[i]), ".qual.pdf") 
-  
-  ggsave(plot = p1, filename = p1_file, device = "pdf", width = 15, height = 15, 
+  p1_file <- paste0(qual_dir, basename(fns[i]), ".qual.pdf")
+
+  ggsave(plot = p1, filename = p1_file, device = "pdf", width = 15, height = 15,
          scale = 1, units = "cm")
 }
 
 #### 5.6.1
-filt_R1 <- str_c(filtered_dir, sample.names, "_R1_filt.fastq") 
-filt_R2 <- str_c(filtered_dir, sample.names, "_R2_filt.fastq") 
+filt_R1 <- str_c(filtered_dir, sample.names, "_R1_filt.fastq")
+filt_R2 <- str_c(filtered_dir, sample.names, "_R2_filt.fastq")
 
 
 #### 5.6.XXX FILTER WITH CUTADAPT
@@ -137,9 +138,9 @@ filt_R2 <- str_c(filtered_dir, sample.names, "_R2_filt.fastq")
 
 #### 5.6.3 FILTER BY LENGTH OF PRIMER
 
-out <- filterAndTrim(fns_R1, filt_R1, fns_R2, filt_R2, truncLen = c(250, 200), 
-                     trimLeft = c(primer_length_fwd, primer_length_rev), maxN = 0, 
-                     maxEE = c(2, 2), truncQ = 2, rm.phix = TRUE, 
+out <- filterAndTrim(fns_R1, filt_R1, fns_R2, filt_R2, truncLen = c(250, 200),
+                     trimLeft = c(primer_length_fwd, primer_length_rev), maxN = 0,
+                     maxEE = c(2, 2), truncQ = 2, rm.phix = TRUE,
                      compress = FALSE, multithread = FALSE)
 
 
@@ -162,7 +163,7 @@ names(derep_R2) <- sample.names
 dada_R1 <- dada(derep_R1, err = err_R1, multithread = FALSE, pool = FALSE)
 dada_R2 <- dada(derep_R2, err = err_R2, multithread = FALSE, pool = FALSE)
 
-# Viwing the first sample in 
+# Viwing the first sample in
 dada_R1[[1]]
 dada_R2[[1]]
 
@@ -180,7 +181,7 @@ plot(table(nchar(getSequences(seqtab)))) #simple plot of length distribution
 
 
 #### 5.7.6 Remove chimeras ####
-seqtab.nochim <- removeBimeraDenovo(seqtab, method = "consensus", multithread = FALSE, 
+seqtab.nochim <- removeBimeraDenovo(seqtab, method = "consensus", multithread = FALSE,
                                     verbose = TRUE)
 
 # Compute % of non chimeras
@@ -191,7 +192,7 @@ paste0("total number of sequences : ", sum(seqtab.nochim))
 
 #### 5.7.7 Track number of reads at each step
 getN <- function(x) sum(getUniques(x))
-track <- cbind(out, sapply(dada_R1, getN), sapply(mergers, getN), rowSums(seqtab), 
+track <- cbind(out, sapply(dada_R1, getN), sapply(mergers, getN), rowSums(seqtab),
                rowSums(seqtab.nochim))
 
 colnames(track) <- c("input", "filtered", "denoised", "merged", "tabled", "nonchim")
@@ -202,8 +203,8 @@ track
 
 #### 5.7.8 Transforming and saving the ASVs sequences
 
-seqtab.nochim_trans <- as.data.frame(t(seqtab.nochim)) %>% rownames_to_column(var = "sequence") %>% 
-  rowid_to_column(var = "OTUNumber") %>% mutate(OTUNumber = sprintf("otu%04d", 
+seqtab.nochim_trans <- as.data.frame(t(seqtab.nochim)) %>% rownames_to_column(var = "sequence") %>%
+  rowid_to_column(var = "OTUNumber") %>% mutate(OTUNumber = sprintf("otu%04d",
                                                                     OTUNumber)) %>% mutate(sequence = str_replace_all(sequence, "(-|\\.)", ""))
 
 df <- seqtab.nochim_trans
@@ -211,13 +212,13 @@ seq_out <- Biostrings::DNAStringSet(df$sequence)
 names(seq_out) <- df$OTUNumber
 seq_out
 
-Biostrings::writeXStringSet(seq_out, str_c(dada2_dir, "ASV_no_taxo.fasta"), 
-                            compress = FALSE, width = 20000) 
+Biostrings::writeXStringSet(seq_out, str_c(dada2_dir, "ASV_no_taxo.fasta"),
+                            compress = FALSE, width = 20000)
 #### 5.7.9 Assinging taxonomy
 # Tha database is here: https://github.com/vaulot/metabarcodes_tutorials/tree/master/databases
 
 pr2_file <- paste0(database_dir, "pr2_version_4.72_dada2.fasta.gz")
-taxa <- assignTaxonomy(seqtab.nochim, refFasta = pr2_file, taxLevels = PR2_tax_levels, 
+taxa <- assignTaxonomy(seqtab.nochim, refFasta = pr2_file, taxLevels = PR2_tax_levels,
                        minBoot = 0, outputBootstraps = TRUE, verbose = TRUE)
 saveRDS(taxa, str_c(dada2_dir, "OsloFjord.taxa.rds"))
 
@@ -235,12 +236,12 @@ seqtab.nochim_trans <- taxa_tax %>% bind_cols(taxa_boot) %>% bind_cols(seqtab.no
 
 
 #### 5.7.12 Filter for 18S ####
-# Define a minimum bootstrap value for filtering 
+# Define a minimum bootstrap value for filtering
 bootstrap_min <- 80
 
 # Remove OTU with annotation below the bootstrap value
-seqtab.nochim_18S <- seqtab.nochim_trans %>% dplyr::filter(Supergroup_boot >= 
-                                                             bootstrap_min) 
+seqtab.nochim_18S <- seqtab.nochim_trans %>% dplyr::filter(Supergroup_boot >=
+                                                             bootstrap_min)
 write_tsv(seqtab.nochim_18S, str_c(dada2_dir, "OsloFjord_dada2.database.tsv"))
 
 
@@ -250,16 +251,16 @@ write_tsv(seqtab.nochim_18S, str_c(dada2_dir, "OsloFjord_dada2.database.tsv"))
 df <- seqtab.nochim_18S
 seq_out <- Biostrings::DNAStringSet(df$sequence)
 
-names(seq_out) <- str_c(df$OTUNumber, df$Supergroup, df$Division, df$Class, 
+names(seq_out) <- str_c(df$OTUNumber, df$Supergroup, df$Division, df$Class,
                         df$Order, df$Family, df$Genus, df$Species, sep = "|")
 
-Biostrings::writeXStringSet(seq_out, str_c(blast_dir, "OsloFjord_ASV.fasta"), compress = FALSE, 
+Biostrings::writeXStringSet(seq_out, str_c(blast_dir, "OsloFjord_ASV.fasta"), compress = FALSE,
                             width = 20000)
 
 #### EXTRA Example for blast on Saga ####
 ##!/bin/sh
 ##SBATCH --job-name=blastn
-##SBATCH --account=nn9525k
+##SBATCH --account=nn9525k #replace with your own project
 ##SBATCH --output=slurm-%j.base
 ##SBATCH --cpus-per-task=16
 ##SBATCH --time=100:00:00
@@ -282,15 +283,21 @@ Biostrings::writeXStringSet(seq_out, str_c(blast_dir, "OsloFjord_ASV.fasta"), co
 samdf <- data.frame(sample_name = sample.names)
 rownames(samdf) <- sample.names
 
-OTU <- seqtab.nochim_18S %>% column_to_rownames("OTUNumber") %>% select_if(is.numeric) %>% 
+OTU <- seqtab.nochim_18S %>% column_to_rownames("OTUNumber") %>% select_if(is.numeric) %>%
   select(-contains("_boot")) %>% as.matrix() %>% otu_table(taxa_are_rows = TRUE)
 
-TAX <- seqtab.nochim_18S %>% column_to_rownames("OTUNumber") %>% select(Kingdom:Species) %>% 
+TAX <- seqtab.nochim_18S %>% column_to_rownames("OTUNumber") %>% select(Kingdom:Species) %>%
   as.matrix() %>% tax_table()
 
 ps_dada2 <- phyloseq(OTU, sample_data(samdf), TAX)
-#saveRDS(ps_dada2, str_c(dada2_dir, "OsloFjord_phyloseq.rds"))
 
-#ps_dada2<-readRDS(str_c(dada2_dir, "OsloFjord_phyloseq.rds"))
+### Saving and loading data ####
+# You can save selected objects:
+# saveRDS(ps_dada2, str_c(dada2_dir, "OsloFjord_phyloseq.rds"))
+# ps_dada2<-readRDS(str_c(dada2_dir, "OsloFjord_phyloseq.rds"))
 
-
+# Or save the entire workspace:
+# save.image(str_c(dada2_dir, "OsloFjord_DADA2.Rdata"))
+#
+# Can be loaded with
+# load("dada2/OsloFjord_DADA2.Rdata"")
