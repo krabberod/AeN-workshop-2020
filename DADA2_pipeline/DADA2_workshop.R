@@ -226,9 +226,18 @@ Biostrings::writeXStringSet(seq_out, str_c(dada2_dir, "ASV_no_taxo.fasta"),
 
 
 pr2_file <- paste0(database_dir, "pr2_version_4.72_dada2.fasta.gz")
-taxa <- assignTaxonomy(seqtab.nochim, refFasta = pr2_file, taxLevels = PR2_tax_levels,
-                       minBoot = 0, outputBootstraps = TRUE, verbose = TRUE)
-saveRDS(taxa, str_c(dada2_dir, "OsloFjord.taxa.rds"))
+
+# OBS! The next step takes a long time. ~45 min on medium fast PC...
+# So in case we are running skip this next command: 
+
+
+#taxa <- assignTaxonomy(seqtab.nochim, refFasta = pr2_file, taxLevels = PR2_tax_levels,
+#                       minBoot = 0, outputBootstraps = TRUE, verbose = TRUE)
+#saveRDS(taxa, str_c(dada2_dir, "OsloFjord.taxa.rds"))
+
+# instead open premade-taxonomy files from Github
+# taxa <- read.RDS(str_c(dada2_dir, "OsloFjord.taxa.rds"))
+# Seqtab.nochim_trans <- read.RDS(str_c("seqtab.nochim_trans.rds"))
 
 
 write_tsv(as_tibble(taxa$tax), path = str_c(dada2_dir, "taxa.txt"))
