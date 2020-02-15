@@ -8,7 +8,7 @@ Take the elevator or stairs to 4th floor and we will meet in room 4436.
 
 We will start at 10:00. Please be there in time or inform us if you will be later.
 
-We will together prepare the lunch in the AQUA section lunch room or a meeting room. And it will be served fruits and coffee/the during brakes,
+We will together prepare the lunch in the AQUA section lunch room or a meeting room. And it will be served fruits and coffee/the during brakes.
 
 Pleas make sure that you have installed all necessary software and packages before Monday. In preparation for the workshop we ask you to make sure that you have the latest version of R (https://cran.r-project.org/) and Rstudio (https://rstudio.com/products/rstudio/) installed. The workshop requires some knowledge about how to use R. If you are entirely new to R you should complete one of the many introduction courses or exercises which can be found online. For instance the Introduction course by Datacamp: https://www.datacamp.com/courses/free-introduction-to-r
 

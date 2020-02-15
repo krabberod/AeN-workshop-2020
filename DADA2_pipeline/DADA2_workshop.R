@@ -41,7 +41,7 @@ library("kableExtra")  # necessary for nice table formatting with knitr
 #### Prepare Directories
 #Define the path to working directory if you are not using Rstudio as project
 
-#setwd("path_to_my_directory/DADA2_pipeline")  
+#setwd("path_to_my_directory/DADA2_pipeline")
 
 
 fastq_dir <- "fastq/"  # fastq directory with the samples we are using
@@ -163,7 +163,7 @@ names(derep_R1) <- sample.names
 names(derep_R2) <- sample.names
 
 #### 5.7.3 Sequence-variant inference algorithm to the dereplicated data ####
-# If your computer can run multiple threads 
+# If your computer can run multiple threads
 dada_R1 <- dada(derep_R1, err = err_R1, multithread = FALSE, pool = FALSE)
 dada_R2 <- dada(derep_R2, err = err_R2, multithread = FALSE, pool = FALSE)
 
@@ -219,16 +219,16 @@ seq_out
 Biostrings::writeXStringSet(seq_out, str_c(dada2_dir, "ASV_no_taxo.fasta"),
                             compress = FALSE, width = 20000)
 #### 5.7.9 Assinging taxonomy
-# The PR2 database can be found here: 
-#  
+# The PR2 database can be found here:
+#
 # https://github.com/vaulot/metabarcodes_tutorials/tree/master/databases
-# 
+#
 
 
 pr2_file <- paste0(database_dir, "pr2_version_4.72_dada2.fasta.gz")
 
 # OBS! The next step takes a long time. ~45 min on medium fast PC...
-# So in case we are running skip this next command: 
+# So in case we are running skip this next command:
 
 
 #taxa <- assignTaxonomy(seqtab.nochim, refFasta = pr2_file, taxLevels = PR2_tax_levels,
