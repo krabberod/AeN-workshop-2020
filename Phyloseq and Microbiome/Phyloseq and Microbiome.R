@@ -26,7 +26,7 @@ sample_variables(OsloFjord_phyloseq)
 
 # We need some metadata!
 # Loading ctd data from excel 
-samples_df <- read_excel("cdt-data.xlsx", sheet = "CTD")
+  samples_df <- read_excel("cdt-data.xlsx", sheet = "CTD")
 samples <- sample_data(samples_df)
 sample_names(samples)<-sample_names(OsloFjord_phyloseq)
 oslo_fjord <- phyloseq(otu_table(OsloFjord_phyloseq),tax_table(OsloFjord_phyloseq),samples)
@@ -154,7 +154,7 @@ p <- plot_core(oslo_fjord_rel, plot.type = "heatmap",
                min.prevalence = .2, horizontal = TRUE) 
 print(p)
 
-save.image("Phyloseseq_Microbiome.Rdata")
+#save.image("Phyloseseq_Microbiome.Rdata")
 
 
 
