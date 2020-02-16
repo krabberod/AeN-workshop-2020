@@ -14,7 +14,7 @@ OsloFjord_phyloseq
 # https://joey711.github.io/phyloseq/import-data.html
 
 ### Inspect the phyloseq object ####
-# The phyloseq object contains a lot of information: 
+# The phyloseq object contains a lot of information:
 # Read abundance table, taxonomy, and metadata
 
 sample_names(OsloFjord_phyloseq)
@@ -25,7 +25,7 @@ sample_variables(OsloFjord_phyloseq)
 
 
 # We need some metadata!
-# Loading ctd data from excel 
+# Loading ctd data from excel
   samples_df <- read_excel("cdt-data.xlsx", sheet = "CTD")
 samples <- sample_data(samples_df)
 sample_names(samples)<-sample_names(OsloFjord_phyloseq)
@@ -38,7 +38,7 @@ oslo_fjord_autotrophs <- subset_taxa(oslo_fjord, Division %in% c("Chlorophyta", 
 oslo_fjord_autotrophs <- subset_taxa(oslo_fjord_autotrophs, !(Class %in% c("Syndiniales", "Sarcomonadea")))
 
 
-# Question: How could this command be used to exclude animals and landplants? How? 
+# Question: How could this command be used to exclude animals and landplants? How?
 
 ### Normalization using median sequencing depth ####
 total <- median(sample_sums(oslo_fjord))
@@ -50,7 +50,7 @@ oslo_fjord <- transform_sample_counts(oslo_fjord, standf)
 plot_bar(oslo_fjord, fill = "Division")
 plot_bar(oslo_fjord, fill = "Supergroup")
 
-# Make the bargraph nicer by removing OTUs boundaries. 
+# Make the bargraph nicer by removing OTUs boundaries.
 # This is done by adding ggplot2 modifier.
 # More on ggplot later in the workshop
 plot_bar(oslo_fjord, fill = "Division") +
@@ -68,7 +68,7 @@ oslo_fjord_chloro <- subset_taxa(oslo_fjord, Division %in% c("Chlorophyta"))
 plot_bar(oslo_fjord_chloro, x="Genus", fill = "Genus")+#, facet_grid = level~Class) +
   geom_bar(aes(color=Genus, fill=Genus), stat="identity", position="stack")
 
-#### Heatmaps #### 
+#### Heatmaps ####
 plot_heatmap(oslo_fjord, method = "NMDS", distance = "bray")
 
 #It is very very cluttered. It is better to only consider the most abundant OTUs for heatmaps.
@@ -94,10 +94,10 @@ dist_methods
 
 ### Simple diversity analysis
 # Example of simple analyses
-# More on diversity analysis later today 
+# More on diversity analysis later today
 plot_richness(oslo_fjord, measures=c("Chao1", "Shannon"))
 
-# See 
+# See
 ?plot_richness
 # for more detail, you can experiment with different functions for richness
 
@@ -122,14 +122,14 @@ plot_net(oslo_fjord_abund, distance = "(A+B-2*J)/(A+B)", type = "taxa",
 plot_net(oslo_fjord_abund, distance = "(A+B-2*J)/(A+B)", type = "taxa",
          maxdist = 0.8, color="Class", point_label="Genus")
 
-#### Microbiome #### 
+#### Microbiome ####
 # Another package with many interesting functions is Microbiome. It is an extension to phyloseq
 # https://microbiome.github.io/tutorials/
 
 library("microbiome")
 
-# for instance prevalence 
-# For each OTU, the fraction of samples where a given OTU is detected. 
+# for instance prevalence
+# For each OTU, the fraction of samples where a given OTU is detected.
 # The output ca be given as a percentage.
 head(prevalence(oslo_fjord,detection = 1/100, sort = TRUE))
 
@@ -141,20 +141,31 @@ core_members(oslo_fjord_rel, detection = 0, prevalence = 25/100)
 
 # making a phyloseq object of the core
 pseq.core <- core(oslo_fjord_rel, detection = 0, prevalence = .5)
-  
+
 tax_table(pseq.core)
-otu_table(pseq.core)  
+otu_table(pseq.core)
 
 #
 library(RColorBrewer)
-p <- plot_core(oslo_fjord_rel, plot.type = "heatmap", 
+p <- plot_core(oslo_fjord_rel, plot.type = "heatmap",
                prevalences = prevalences,
                detections = detections,
                colours = rev(brewer.pal(5, "Spectral")),
-               min.prevalence = .2, horizontal = TRUE) 
+               min.prevalence = .2, horizontal = TRUE)
 print(p)
 
-#save.image("Phyloseseq_Microbiome.Rdata")
 
+# Example of complex aggregating of abundance on higher level and plotting with different colors
+oslo_fjord_autotrophs.melt<- oslo_fjord_autotrophs %>% psmelt() %>% arrange(Kingdom) %>%
+  {aggregate(.$Abundance,by=list(.$Supergroup,.$Division,.$Class,.$Order), FUN=sum)}
 
-
+oslo_fjord_autotrophs.melt %>%
+  ggplot(aes(x = Group.2, y = x,fill = Group.3)) +
+  #facet_grid(. ~ Group.1) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = sample(colorRampPalette(brewer.pal(8,"Dark2"))(20)),name="Class")+
+  theme_bw(base_size = 8)+
+  theme(legend.key.size = unit(0.2, "cm")) +
+  theme(axis.title.x = element_blank() ,axis.text.x  = element_text(angle=45, vjust=0.5, colour="darkgrey")) +
+  ylab("Relative Abundance\n") +
+  ggtitle("All groups")

@@ -1,0 +1,204 @@
+---
+title: "Network analysis and R Notebooks"
+author: "Anders K. Krabberød"
+date: February 2020
+output: html_notebook
+---
+### Prologue: R Notebooks
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing chunks by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+# Networks in R
+In this example we will look at networks generared with sparCC (Friedman and Alm, PLoS Com.Biol 2012). The SpiecEasi package contains a nice wrapper for running sparcc on phyloseq objects in R.  
+
+### Load necessary packages
+First wee need to Load necessary packages, and install SpiecEasi if necessary.
+```{r}
+
+library(igraph)
+library(phyloseq)
+#library(devtools)
+#install_github("zdk123/SpiecEasi")
+library(SpiecEasi)
+library(Matrix)
+```
+
+We also need to load the phyloseq object created by Dada2. Adjust the path if necessary. 
+```{r}
+OsloFjord_phyloseq <- readRDS("OsloFjord_phyloseq.rds")
+OsloFjord_phyloseq<-subset_samples(OsloFjord_phyloseq, sample_names(OsloFjord_phyloseq) != "S07")
+OsloFjord_phyloseq<-subset_samples(OsloFjord_phyloseq, sample_names(OsloFjord_phyloseq) != "S09")
+
+OsloFjord_phyloseq
+
+```
+
+### Run sparCC
+Phyloseq comes with a wrapper that makes running sparcc easy.   
+First we look at how the samples relates to each other, based on the correlation between read abundance of the otus. 
+
+```{r}
+system.time({ 
+sparcc.samples <- sparcc(otu_table(OsloFjord_phyloseq), iter=200,inner_iter=100)
+str(sparcc.samples)
+})
+```
+
+The sparcc object contains two list, the co-variance score and the correlation. In addition you should get boostrap and empirical p-values for the network. This takes some time, since the data is permutated and networks correlation scores are calculated may times over. 
+
+```{#r}
+sparcc.samples.boot <- sparccboot(otu_table(OsloFjord_phyloseq), R =100, ncpu=4)
+sparcc.samples.pval <- pval.sparccboot(OsloFjord.sparcc.samples.boot)
+```
+
+  
+### Making a network of the correlation matrix
+Turning the correlation values into a network requires a few steps. 
+```{r}
+
+row.names(sparcc.samples$Cor)<-row.names(sample_data(OsloFjord_phyloseq))
+colnames(sparcc.samples$Cor)<-row.names(sample_data(OsloFjord_phyloseq))
+hist(abs(sparcc.samples$Cor))
+
+
+## Define threshold for SparCC correlation matrix for the graph
+sparcc.graph.matrix <- abs(sparcc.samples$Cor) >= 0.1
+#sparcc.graph.matrix
+diag(sparcc.graph.matrix) <- 0
+sparcc.graph.matrix <- Matrix(sparcc.graph.matrix, sparse=TRUE)
+
+# Create igraph objects from the adjacency matrix 
+sparcc.graph <- adj2igraph(sparcc.graph.matrix, vertex.attr = list(name=row.names(otu_table(t(OsloFjord_phyloseq)))))
+
+```
+
+### Graph statistics
+
+``` {r}
+# How connected are the nodes?
+degree(sparcc.graph)
+#degree.distribution(sparcc.graph)
+
+# extract the correaltion score for the graph
+elist.sparcc<- summary(sparcc.graph.matrix*sparcc.samples$Cor)
+elist.sparcc
+
+cat("\nNetwork stats\n", "Clustering coefficient: ", ClusteringCcoefficient <- transitivity(sparcc.graph), "\n")
+cat("Betweenness entrality: ", BetweennessCentrality<- edge_betweenness(sparcc.graph),"\n")
+cat("Average path length: ", AveragePathLength <- average.path.length(sparcc.graph),"\n")
+
+```
+
+### Plotting
+Plotting can be done in many different ways. Play with the settings to find somethign interesting
+
+```{r}
+plot(sparcc.graph,vertex.size=1)
+plot(sparcc.graph,vertex.size=4, layout=layout_in_circle, vertex.label.dist=1.5)
+
+#The phyloseq network plotter
+plot_network(sparcc.graph, OsloFjord_phyloseq)
+```
+
+
+
+
+
+
+Adding the correlation score as weights to the graph
+
+```{r}
+elist.sparcc<- summary(sparcc.graph.matrix*sparcc.samples$Cor)
+E(sparcc.graph)$weight<-elist.sparcc[,3]
+E(sparcc.graph)$width <- 25*E(sparcc.graph)$weight
+E(sparcc.graph)$edge.color <- "grey"
+
+V(sparcc.graph)$color <- "blue"
+
+#set.seed(666)
+plot(sparcc.graph,vertex.size=4, vertex.label.dist=2, layout=layout_with_mds)
+
+# see help(layout)
+```
+
+```{r}
+
+```
+
+
+
+# For OTUs.
+The procedure is the same, but this time we will transfor the otu table. Notice the function t() added around the phyloseq object. 
+
+```{r}
+system.time({ 
+sparcc.samples <- sparcc(otu_table(t(OsloFjord_phyloseq)), iter=20,inner_iter=10)
+
+str(sparcc.samples)
+
+})
+```
+
+The sparcc object contains two list, the co-variance score and the correlation. In addition you should get boostrap and empirical p-values for the network. This takes some time, since the data is permutated and networks correlation scores are calculated may times over. 
+
+```{#r}
+sparcc.samples.boot <- sparccboot(otu_table(OsloFjord_phyloseq), R =100, ncpu=4)
+sparcc.samples.pval <- pval.sparccboot(OsloFjord.sparcc.samples.boot)
+```
+
+  
+### Making a network of the correlation matrix
+Turning the correlation values into a network requires a few steps. 
+```{r}
+
+row.names(sparcc.samples$Cor)<-row.names(sample_data(OsloFjord_phyloseq))
+colnames(sparcc.samples$Cor)<-row.names(sample_data(OsloFjord_phyloseq))
+hist(abs(sparcc.samples$Cor))
+
+
+## Define threshold for SparCC correlation matrix for the graph
+sparcc.graph.matrix <- abs(sparcc.samples$Cor) >= 0.1
+sparcc.graph.matrix
+diag(sparcc.graph.matrix) <- 0
+sparcc.graph.matrix <- Matrix(sparcc.graph.x, sparse=TRUE)
+
+# Create igraph objects from the adjacency matrix 
+sparcc.graph <- adj2igraph(sparcc.graph.matrix, vertex.attr = list(name=row.names(otu_table(t(OsloFjord_phyloseq)))))
+
+```
+
+### look at some of the statistics for the graph
+
+``` {r}
+# How connected are the nodes?
+degree(sparcc.graph)
+degree.distribution(sparcc.graph)
+
+#ectract the correaltion score for the graph
+elist.sparcc<- summary(sparcc.graph.matrix*sparcc.samples$Cor)
+elist.sparcc
+
+```
+
+### Plotting
+Plotting can be done in many different ways. Play with the settings to find somethign interesting
+
+```{r}
+plot(sparcc.graph,vertex.size=1)
+plot(sparcc.graph,vertex.size=4, layout=layout_in_circle, vertex.label.dist=1.5)
+
+#The phyloseq network plotter
+plot_network(sparcc.graph, OsloFjord_phyloseq)
+```
+
+
+
+
+
