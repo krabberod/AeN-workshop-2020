@@ -8,7 +8,7 @@ library("readxl")    # To read Excel files into R
 library("ggplot2")   # for high quality graphics
 
 # we can use the phyloseq object created at the end of the Dada2 pipline
-OsloFjord_phyloseq
+OsloFjord_phyloseq <- readRDS("../DADA2_pipeline/dada2/OsloFjord_phyloseq.rds")
 
 # A detailed tutorial for importing data and creating phyloseq objects
 # https://joey711.github.io/phyloseq/import-data.html
@@ -26,10 +26,13 @@ sample_variables(OsloFjord_phyloseq)
 
 # We need some metadata!
 # Loading ctd data from excel
-  samples_df <- read_excel("cdt-data.xlsx", sheet = "CTD")
+samples_df <- read_excel("cdt-data.xlsx", sheet = "CTD")
 samples <- sample_data(samples_df)
 sample_names(samples)<-sample_names(OsloFjord_phyloseq)
 oslo_fjord <- phyloseq(otu_table(OsloFjord_phyloseq),tax_table(OsloFjord_phyloseq),samples)
+
+#Let's save the update object
+saveRDS(oslo_fjord,"OsloFjord_phyloseq.rds")
 
 ### Subsetting based on taxonomy ####
 # Example for subsetting on taxonomic annoation. In this example we select autotrophic taxa
