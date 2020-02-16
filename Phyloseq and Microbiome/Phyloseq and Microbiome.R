@@ -27,6 +27,7 @@ sample_variables(OsloFjord_phyloseq)
 
 # We need some metadata!
 # Loading ctd data from excel
+
 samples_df <- read_excel("cdt-data.xlsx", sheet = "CTD")
 samples <- sample_data(samples_df)
 sample_names(samples)<-sample_names(OsloFjord_phyloseq)
@@ -155,7 +156,18 @@ p <- plot_core(oslo_fjord_rel, plot.type = "heatmap",
                min.prevalence = .2, horizontal = TRUE)
 print(p)
 
-#save.image("Phyloseseq_Microbiome.Rdata")
 
+# Example of complex aggregating of abundance on higher level and plotting with different colors
+oslo_fjord_autotrophs.melt<- oslo_fjord_autotrophs %>% psmelt() %>% arrange(Kingdom) %>%
+  {aggregate(.$Abundance,by=list(.$Supergroup,.$Division,.$Class,.$Order), FUN=sum)}
 
-
+oslo_fjord_autotrophs.melt %>%
+  ggplot(aes(x = Group.2, y = x,fill = Group.3)) +
+  #facet_grid(. ~ Group.1) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = sample(colorRampPalette(brewer.pal(8,"Dark2"))(20)),name="Class")+
+  theme_bw(base_size = 8)+
+  theme(legend.key.size = unit(0.2, "cm")) +
+  theme(axis.title.x = element_blank() ,axis.text.x  = element_text(angle=45, vjust=0.5, colour="darkgrey")) +
+  ylab("Relative Abundance\n") +
+  ggtitle("All groups")
