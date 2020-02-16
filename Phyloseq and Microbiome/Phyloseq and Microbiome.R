@@ -8,7 +8,12 @@ library("readxl")    # To read Excel files into R
 library("ggplot2")   # for high quality graphics
 
 # we can use the phyloseq object created at the end of the Dada2 pipline
+<<<<<<< HEAD
 OsloFjord_phyloseq <- readRDS("../DADA2_pipeline/dada2/OsloFjord_phyloseq.rds")
+=======
+# OsloFjord_phyloseq = ps_dada2 # might need to use this line
+OsloFjord_phyloseq
+>>>>>>> ecd861a7efcb3795a61af73c9c282bceaa6d4f04
 
 # A detailed tutorial for importing data and creating phyloseq objects
 # https://joey711.github.io/phyloseq/import-data.html
@@ -26,6 +31,10 @@ sample_variables(OsloFjord_phyloseq)
 
 # We need some metadata!
 # Loading ctd data from excel
+<<<<<<< HEAD
+=======
+
+>>>>>>> ecd861a7efcb3795a61af73c9c282bceaa6d4f04
 samples_df <- read_excel("cdt-data.xlsx", sheet = "CTD")
 samples <- sample_data(samples_df)
 sample_names(samples)<-sample_names(OsloFjord_phyloseq)
@@ -35,7 +44,7 @@ oslo_fjord <- phyloseq(otu_table(OsloFjord_phyloseq),tax_table(OsloFjord_phylose
 saveRDS(oslo_fjord,"OsloFjord_phyloseq.rds")
 
 ### Subsetting based on taxonomy ####
-# Example for subsetting on taxonomic annoation. In this example we select autotrophic taxa
+# Example for subsetting on taxonomic annotation. In this example we select autotrophic taxa
 oslo_fjord_autotrophs <- subset_taxa(oslo_fjord, Division %in% c("Chlorophyta", "Dinophyta", "Cryptophyta",
                                               "Haptophyta", "Ochrophyta", "Cercozoa"))
 oslo_fjord_autotrophs <- subset_taxa(oslo_fjord_autotrophs, !(Class %in% c("Syndiniales", "Sarcomonadea")))
