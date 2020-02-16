@@ -228,5 +228,5 @@ plot_network(simplified.graph, OsloFjord_phyloseq,type= "taxa", color = "Supergr
 There are several different formats for saving, example with graphml. 
 
 ```{r}
-write.graph(sparcc.outs.graph, "Oslofjorden.sparcc.outs.graph", format = "graphml")
+write.graph(sparcc.outs.graph, "Oslofjorden.sparcc.outs.graphml", format = "graphml")
 ``` 
