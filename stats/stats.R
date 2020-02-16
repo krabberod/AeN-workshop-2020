@@ -9,6 +9,8 @@ library("readxl")
 library("ggplot2")
 library("R.utils") # nice library if you want to make and use own functions
 library("dendextend")
+library("Hmisc")
+library("corrplot")
 
 # define directories and load files
 figs_dir <- "figs/"  # figures
@@ -27,9 +29,8 @@ sample_variables(OsloFjord_phyloseq)
 metadata <- read_excel("cdt-data.xlsx", sheet = "CTD")
 samples <- sample_data(metadata)
 sample_names(samples)<-sample_names(OsloFjord_phyloseq)
-oslo_fjord <- phyloseq(otu_table(OsloFjord_phyloseq),tax_table(OsloFjord_phyloseq),samples)
-
-
+oslo_fjord <- phyloseq(otu_table(OsloFjord_phyloseq), tax_table(OsloFjord_phyloseq), samples)
+saveRDS(oslo_fjord, file.path("stats", "OsloFjord_phyloseq.rds"))
 
 ### Rarefaction curves ###
 # Background. Rarefaction is a technique to assess species richness from the results of sampling. Rarefaction allows the calculation of species richness for a given number of individual samples, based on the construction of a so-called rarefaction curve. This curve is a plot of the number of species as a function of the number of sequences. It is created by randomly re-sampling the pool of N samples multiple times and then plotting the average number of species found in each sample (1,2, ... N). Thus, rarefaction generates the expected number of species in a small collection of n individuals (or n samples) drawn at random from the large pool of N samples. Rarefaction curves generally grow rapidly at first, as the most common species are found, but the curves plateau as only the rarest species remain to be sampled.
@@ -214,7 +215,24 @@ env_fit[[1]]
 # Plot environmental variable vectors onto the ordination.
 plot(env_fit, p.max = 0.05, cex=0.4)
 
-# Check for autocorrelations
+### Check for autocorrelations in metadata ###
+# A correlation matrix is a table of correlation coefficients for a set of variables used to determine if a relationship exists between the variables. The coefficient indicates both the strength of the relationship as well as the direction (positive vs. negative correlations). In this post I show you how to calculate and visualize a correlation matrix using R.
+# Use the following code to run the correlation matrix with p-values. Note that the data has to be fed to the rcorr function as a matrix.
+
+metadata_cleaned <- metadata[c(-7, -9),c(4:11, 13, 15, 16)]
+corr_matrix <- rcorr(as.matrix(metadata_cleaned), type = "spearman")
+
+# This generates one table of correlation coefficients (the correlation matrix) and another table of the p-values. By default, the correlations and p-values are stored in an object of class type rcorr. To extract the values from this object into a useable data structure, you can use the following syntax:
+
+data_coeff = corr_matrix$r
+data_p = corr_matrix$P
+
+## Visualizing the correlation matrix
+# There are several packages available for visualizing a correlation matrix in R. One of the most common is the corrplot function.
+
+pdf(file = file.path(figs_dir, "correlation_matrix.pdf")
+	corrplot::corrplot(corr_matrix$r, type="upper", p.mat = corr_matrix$P, sig.level = 0.05, insig="blank", order="hclust", addrect=2)
+dev.off()
 
 ### Community analysis - hierarchical clustering ###
 
@@ -249,5 +267,9 @@ dev.off()
 # Question E: Did you notice anything interesting or striking from the time series? Did you observe distinct groups?
 
 ### Unifrac distance ###
+
+
+### RDA and dbRDA ###
+
 
 
