@@ -4,6 +4,7 @@
 # https://www.dropbox.com/s/erhdug0lun797iu/fastq.zip?dl=0
 
 ### Install Packages
+# Skip this if you have already installed the packages
 
 install.packages("readr")     # To read and write files
 install.packages("readxl")    # To read excel files
@@ -39,14 +40,13 @@ library("stringr")
 library("kableExtra")  # necessary for nice table formatting with knitr
 
 #### Prepare Directories
-#Define the path to working directory if you are not using Rstudio as project
+# Define the path to the working directory if you are not using Rstudio as project
 
-#setwd("path_to_my_directory/DADA2_pipeline")
+# setwd("~/path_to_my_directory/DADA2_pipeline")
 
-
+# Define the name of directories to use
 fastq_dir <- "fastq/"  # fastq directory with the samples we are using
 database_dir <- "databases/"  # folder with the PR2 database https://github.com/vaulot/metabarcodes_tutorials/tree/master/databases
-
 
 filtered_dir <- "fastq_filtered/"  # fastq filtered
 qual_dir <- "qual_pdf/"  # qual pdf
@@ -100,13 +100,13 @@ for (i in 1:length(fns_R1)) {
 knitr::kable(df) # to make html table.
 View(df)
 
-#If you want to write the table remove the hashtag and use:
+# If you want to write the table to your working directory remove the hashtag and use:
 # write.table(df, file = 'n_seq.txt', sep='\t', row.names = FALSE, na='',
 #            quote=FALSE)
 
 
 # plot the histogram with number of sequences
-# in the test-case the histogram will be of little value since everything is subsampled to 10000 seqs.
+# The plot for the example data looks kind of uninformative, why?
 ggplot(df, aes(x = n_seq)) + geom_histogram(alpha = 0.5, position = "identity",
                                             binwidth = 16) + xlim(9000, 11000)
 
@@ -133,9 +133,18 @@ filt_R1 <- str_c(filtered_dir, sample.names, "_R1_filt.fastq")
 filt_R2 <- str_c(filtered_dir, sample.names, "_R2_filt.fastq")
 
 
-#### 5.6.XXX FILTER WITH CUTADAPT
-
-
+#### 5.6.XXX FILTER WITH CUTADAPT (not executed)
+# Cutadapt is the preferred way of filtering sequences, because it will trim
+# primers allowing some mismatches and ambiguities. It is not implemented
+# in R at the moment, however so we filter using the length of the primer
+# as one of the filtering criteria instead (see next step 5.6.3).
+# Why is this not an optimal solution?
+# If time permits and you want to use cutadapt you can install it on your system and run it
+# outside R. https://cutadapt.readthedocs.io/en/stable/guide.html
+# Alternatively install the following package and do it in R (not tested)
+# library(devtools)
+# install_github("omicsCore/SEQprocess")
+# cutadpat(fq1, output.dir, adpat.seq="insert primer sequence here", m=1, mc.cores=1, run.cmd=TRUE)
 
 
 #### 5.6.3 FILTER BY LENGTH OF PRIMER
@@ -147,7 +156,7 @@ out <- filterAndTrim(fns_R1, filt_R1, fns_R2, filt_R2, truncLen = c(250, 200),
 
 
 #### 5.7 DADA2 ####
-# If you settup allows running multiple threads set multithread = TRUE
+# If your setup allows running multiple threads set multithread = TRUE
 err_R1 <- learnErrors(filt_R1, multithread = FALSE)
 plotErrors(err_R1, nominalQ = TRUE)
 
@@ -162,12 +171,12 @@ derep_R2 <- derepFastq(filt_R2, verbose = FALSE)
 names(derep_R1) <- sample.names
 names(derep_R2) <- sample.names
 
-#### 5.7.3 Sequence-variant inference algorithm to the dereplicated data ####
-# If your computer can run multiple threads
+#### 5.7.3 Sequence-variant inference algorithm on the dereplicated data ####
+# If your computer can run multiple threads set multithread = TRUE
 dada_R1 <- dada(derep_R1, err = err_R1, multithread = FALSE, pool = FALSE)
 dada_R2 <- dada(derep_R2, err = err_R2, multithread = FALSE, pool = FALSE)
 
-# Viwing the first sample in
+# Viewing the first entry in each of the dada objects
 dada_R1[[1]]
 dada_R2[[1]]
 
@@ -178,8 +187,8 @@ head(mergers[[1]])
 #### 5.7.5 ####
 seqtab <- makeSequenceTable(mergers)
 dim(seqtab)
-# Make a transposed of the seqtab to make it be similar to mothur database
-t_seqtab <- t(seqtab)
+# Make a transposed version of seqtab to make it similar to data in mothur
+t_seqtab <- t(seqtab) # the function t() is a simple transposing of the matrix
 table(nchar(getSequences(seqtab)))
 plot(table(nchar(getSequences(seqtab)))) #simple plot of length distribution
 
@@ -192,10 +201,11 @@ seqtab.nochim <- removeBimeraDenovo(seqtab, method = "consensus", multithread = 
 paste0("% of non chimeras : ", sum(seqtab.nochim)/sum(seqtab) * 100)
 paste0("total number of sequences : ", sum(seqtab.nochim))
 
-
+# What are chimeras, and why do we remove them? How is it done in Dada2?
 
 #### 5.7.7 Track number of reads at each step
-getN <- function(x) sum(getUniques(x))
+getN <- function(x) sum(getUniques(x)) # example of a function in R
+
 track <- cbind(out, sapply(dada_R1, getN), sapply(mergers, getN), rowSums(seqtab),
                rowSums(seqtab.nochim))
 
@@ -227,19 +237,20 @@ Biostrings::writeXStringSet(seq_out, str_c(dada2_dir, "ASV_no_taxo.fasta"),
 
 pr2_file <- paste0(database_dir, "pr2_version_4.72_dada2.fasta.gz")
 
-# OBS! The next step takes a long time. ~45 min on medium fast PC...
-# So in case we are running skip this next command:
+# OBS! The next step takes a long time. ~45 min on a medium fast PC...
+# So in case we are running late skip this next command. If we have time
+# start the process (i.e. remove hashtags), and have some coffee.
 
 
 #taxa <- assignTaxonomy(seqtab.nochim, refFasta = pr2_file, taxLevels = PR2_tax_levels,
 #                       minBoot = 0, outputBootstraps = TRUE, verbose = TRUE)
 #saveRDS(taxa, str_c(dada2_dir, "OsloFjord.taxa.rds"))
 
-# instead open premade-taxonomy files from Github
+# I have prepared a taxonomy file that I can put on github, if necessary.
 # taxa <- read.RDS(str_c(dada2_dir, "OsloFjord.taxa.rds"))
 # Seqtab.nochim_trans <- read.RDS(str_c("seqtab.nochim_trans.rds"))
 
-
+# Export information in tab or comma separated files
 write_tsv(as_tibble(taxa$tax), path = str_c(dada2_dir, "taxa.txt"))
 write.csv(taxa$tax, file = str_c(dada2_dir, "taxa.txt"))
 write_tsv(as_tibble(taxa$boot), path = str_c(dada2_dir, "taxa_boot.txt"))
@@ -263,7 +274,7 @@ write_tsv(seqtab.nochim_18S, str_c(dada2_dir, "OsloFjord_dada2.database.tsv"))
 
 
 #### 5.7.13 Write FASTA file for BLAST analysis with taxonomy ####
-
+# Blasting is an alternative to RDP classifier: 
 
 df <- seqtab.nochim_18S
 seq_out <- Biostrings::DNAStringSet(df$sequence)
