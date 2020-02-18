@@ -30,7 +30,7 @@ When you have installed R and Rstudio, run the script called [required_packages.
 |                 | 13:00 - 16:00 | DADA2 continued                           | Anders      |
 |                 | 16:00 - 17:00 | Q and A, tips and hints                   | Anders      |
 | **Wednesday**   | 09:00 - 12:00 | Intro to Phyloseq and Microbiome packages | Anders      |
-| *OBS Room 4619  | 12:00 - 13:00 | *Lunch*                                   |             |
+| *OBS Room 4619*  | 12:00 - 13:00 | *Lunch*                                   |             |
 |                 | 13:00 - 17:00 | Statistical analyses                      | Alex        |
 | **Thursday**    | 09:00 - 11:00 | Ggplot2                                   | Alex        |
 |                 | 11:00 - 12:00 | Phylogeny, EPA and pplacer                | Anders      |
