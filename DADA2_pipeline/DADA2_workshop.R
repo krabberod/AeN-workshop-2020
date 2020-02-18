@@ -40,18 +40,15 @@ library("kableExtra")  # necessary for nice table formatting with knitr
 
 #### Prepare Directories
 #Define the path to working directory if you are not using Rstudio as project
+setwd("C:/Users/laurenfo/Documents/Workshops/2020.02.17-20 AeN workshop")
 
-#setwd("path_to_my_directory/DADA2_pipeline")
+fastq_dir <- "C:/Users/laurenfo/Documents/Workshops/2020.02.17-20 AeN workshop/fastq/"  # fastq directory with the samples we are using
+database_dir <- "C:/Users/laurenfo/Documents/Workshops/2020.02.17-20 AeN workshop/"  # folder with the PR2 database https://github.com/vaulot/metabarcodes_tutorials/tree/master/databases
 
-
-fastq_dir <- "fastq/"  # fastq directory with the samples we are using
-database_dir <- "databases/"  # folder with the PR2 database https://github.com/vaulot/metabarcodes_tutorials/tree/master/databases
-
-
-filtered_dir <- "fastq_filtered/"  # fastq filtered
-qual_dir <- "qual_pdf/"  # qual pdf
-dada2_dir <- "dada2/"  # dada2 results
-blast_dir <- "blast/"  # blast2 results
+filtered_dir <- "C:/Users/laurenfo/Documents/Workshops/2020.02.17-20 AeN workshop/fastq_filtered/"  # fastq filtered
+qual_dir <- "C:/Users/laurenfo/Documents/Workshops/2020.02.17-20 AeN workshop/qual_pdf/"  # qual pdf
+dada2_dir <- "C:/Users/laurenfo/Documents/Workshops/2020.02.17-20 AeN workshop/dada2/"  # dada2 results
+blast_dir <- "C:/Users/laurenfo/Documents/Workshops/2020.02.17-20 AeN workshop/blast/"  # blast2 results
 
 
 dir.create(filtered_dir)
@@ -236,8 +233,8 @@ pr2_file <- paste0(database_dir, "pr2_version_4.72_dada2.fasta.gz")
 #saveRDS(taxa, str_c(dada2_dir, "OsloFjord.taxa.rds"))
 
 # instead open premade-taxonomy files from Github
-# taxa <- read.RDS(str_c(dada2_dir, "OsloFjord.taxa.rds"))
-# Seqtab.nochim_trans <- read.RDS(str_c("seqtab.nochim_trans.rds"))
+# taxa <- readRDS(str_c(dada2_dir, "OsloFjord.taxa.rds"))
+# Seqtab.nochim_trans <- readRDS(str_c(dada2_dir, "seqtab.nochim_trans.rds"))
 
 
 write_tsv(as_tibble(taxa$tax), path = str_c(dada2_dir, "taxa.txt"))

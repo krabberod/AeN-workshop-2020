@@ -26,7 +26,8 @@ rank_names(OsloFjord_phyloseq)
 sample_variables(OsloFjord_phyloseq)
 
 # add metadata
-metadata <- read_excel("cdt-data.xlsx", sheet = "CTD")
+#metadata <- read_excel("cdt-data.xlsx", sheet = "CTD")
+metadata <- read.table("CTD_data.tsv", header=T, check.names=F)	
 samples <- sample_data(metadata)
 sample_names(samples)<-sample_names(OsloFjord_phyloseq)
 oslo_fjord <- phyloseq(otu_table(OsloFjord_phyloseq), tax_table(OsloFjord_phyloseq), samples)
@@ -187,7 +188,7 @@ asv_mds_3d <- metaMDS(stand_asv, distance = "bray", autotransform = FALSE, try =
 
 stress_vec <- numeric(10)
 for(i in seq(10)){
-  stress_vec[i] <- metaMDS(asv_mds, distance = "bray", autotransform = FALSE, try = 200, k=i)$stress
+  stress_vec[i] <- metaMDS(stand_asv, distance = "bray", autotransform = FALSE, try = 200, k=i)$stress
 }
 
 plot(seq(10),stress_vec, type = 'o', ylab = "Stress", xlab = "Number of dimensions",
@@ -204,22 +205,22 @@ ordiplot(asv_mds, display="sites", type="t")
 
 ### Fit environmental data ###
 # Fit environmental variables to the ordination. Environmental variable values must be scaled and centered since they vary in their physical dimensions. The function envfit does it by default to columns of numeric values present in the dataframe passed to the function.
-
-env_data <- sample_data(subset_oslo_fjord)
-
-env_fit <- envfit(asv_mds, env_data, permu=999, na.rm=T)
+sites_mds <- metaMDS(decostand(t(otu_table(subset_oslo_fjord)), method="hellinger"), distance = "bray", autotransform = FALSE, try = 200)
+env_data <- data.frame(sample_data(subset_oslo_fjord))
+env_fit <- envfit(sites_mds, env_data[,4:13], permu=999, na.rm=T)
 
 # Check significance of environmental vector fitting
 env_fit[[1]]
 
 # Plot environmental variable vectors onto the ordination.
-plot(env_fit, p.max = 0.05, cex=0.4)
+ordiplot(sites_mds)
+plot(env_fit, p.max = 0.05, cex=1)	#flSP is fluorescence SeaPoint
 
 ### Check for autocorrelations in metadata ###
 # A correlation matrix is a table of correlation coefficients for a set of variables used to determine if a relationship exists between the variables. The coefficient indicates both the strength of the relationship as well as the direction (positive vs. negative correlations). In this post I show you how to calculate and visualize a correlation matrix using R.
 # Use the following code to run the correlation matrix with p-values. Note that the data has to be fed to the rcorr function as a matrix.
 
-metadata_cleaned <- metadata[c(-7, -9),c(4:11, 13, 15, 16)]
+metadata_cleaned <- metadata[c(-7, -9),c(4:11, 13, 16)]
 corr_matrix <- rcorr(as.matrix(metadata_cleaned), type = "spearman")
 
 # This generates one table of correlation coefficients (the correlation matrix) and another table of the p-values. By default, the correlations and p-values are stored in an object of class type rcorr. To extract the values from this object into a useable data structure, you can use the following syntax:
@@ -230,20 +231,20 @@ data_p = corr_matrix$P
 ## Visualizing the correlation matrix
 # There are several packages available for visualizing a correlation matrix in R. One of the most common is the corrplot function.
 
-pdf(file = file.path(figs_dir, "correlation_matrix.pdf")
+pdf(file = file.path(figs_dir, "correlation_matrix.pdf"))
 	corrplot::corrplot(corr_matrix$r, type="upper", p.mat = corr_matrix$P, sig.level = 0.05, insig="blank", order="hclust", addrect=2)
 dev.off()
 
 ### Community analysis - hierarchical clustering ###
 
 # Compute distance matrix for community composition.
-asv_dist <- vegdist(stand_asv, method="bray")
+asv_dist <- vegdist(decostand(t(otu_table(subset_oslo_fjord)), method="hellinger"), method="bray")
 
 # Cluster communities using unweighted pair group method with arithmetic mean (UPGMA) method.
 asv_clust <- hclust(asv_dist, method="average")
 
-env_scaled <- as.matrix(scale(env_data, scale=T, center=T))
-rownames(env_scaled)= env_data[,1]
+env_scaled <- as.matrix(scale(metadata_cleaned, scale=T, center=T))
+rownames(env_scaled)= rownames(env_data[c(1:6, 8, 10:17),])
 
 # Compute distance matrix for environmental metadata.
 env_dist <- vegdist(env_scaled, method="euclidean")
@@ -256,10 +257,10 @@ asv_dendro = as.dendrogram(asv_clust)
 env_dendro = as.dendrogram(env_clust)
 
 # Compare dendrograms with a tanglegram.
-dl = dendlist(OTU.dendro, env.dendro)
+dl = dendlist(asv_dendro, env_dendro)
 
-pdf(file = file.path(figs_dir, "dendograms.pdf")
-tanglegram(dl, sort = F, common_subtrees_color_lines = F, highlight_distinct_edges = F, highlight_branches_lwd = F, main_left = "Community composition", main_right = "Environmental conditions", common_subtrees_color_branches = FALSE, margin_inner = 5, margin_outer = 5, axes=F)
+pdf(file = file.path(figs_dir, "dendrograms.pdf"))
+tanglegram(dl, sort = T, common_subtrees_color_lines = F, highlight_distinct_edges = F, highlight_branches_lwd = F, main_left = "Community composition", main_right = "Environmental conditions", common_subtrees_color_branches = FALSE, margin_inner = 5, margin_outer = 5, axes=F)
 dev.off()
 
 # Check dendrogram comparison plot in your "M:/pc/Dokumenter/" folder.
