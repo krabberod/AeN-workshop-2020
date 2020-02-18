@@ -11,4 +11,7 @@
 getwd()
 
 # Changing the working directory 
+db<- c("hello","goodbye")
+
+save.image("Some_data.Rdata")
 

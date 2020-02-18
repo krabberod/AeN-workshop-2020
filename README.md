@@ -16,25 +16,25 @@ When you have installed R and Rstudio, run the script called [required_packages.
 
 ### Schedule
 
-| Day           | Time          |                                           |                |
-| ------------- | ------------- | ----------------------------------------- | -------------- |
-| **Monday**    | 10:00 - 10:30 | Welcome and short introduction            | Bente, Anna |
-|               | 10:30 - 12:30 | Introduction to metabarcoding             | Alex           |
-|               | 12:30 - 13:30 | *Lunch*                                   |                |
-|               | 13:30 - 14:30 | Datageneration                            | Alex           |
-|               | 14:30 - 16:00 | Introduction to R and Rstudio             | Anders         |
-|               | 16:00 - 18:00 | Help with setup, preaparion of data       | Anders/Alex    |
-| **Tuesday**     | 09:00 - 10:00 | Clustering and DADA2                      | Alex           |
-|               | 10:00 - 12:00 | DADA2 pipeline                            | Anders         |
-|               | 12:00 - 13:00 | *Lunch*                                   |                |
-|               | 13:00 - 16:00 | DADA2 continued                           | Anders         |
-|               | 16:00 - 17:00 | Q and A, tips and hints                   | Anders         |
-| **Wednesday** | 09:00 - 12:00 | Intro to Phyloseq and Microbiome packages | Anders         |
-|               | 12:00 - 13:00 | *Lunch*                                   |                |
-|               | 13:00 - 17:00 | Statistical analyses                      | Alex           |
-| **Thursday**  | 09:00 - 11:00 | Ggplot2                                   | Alex           |
-|               | 11:00 - 12:00 | Phylogeny, EPA and pplacer                | Anders         |
-|               | 12:00 - 13:00 | *Lunch*                                   |                |
-|               | 13:00 - 14:00 | Phylogeny continued                       | Anders         |
-|               | 14:00 - 15:30 | Networks                                  | Anders         |
-|               | 15:30 - 16:00 | Questions and evaluations                 | Bente          |
+| Day             | Time          |                                           |             |
+| --------------- | ------------- | ----------------------------------------- | ----------- |
+| **Monday**      | 10:00 - 10:30 | Welcome and short introduction            | Bente, Anna |
+|                 | 10:30 - 12:30 | Introduction to metabarcoding             | Alex        |
+|                 | 12:30 - 13:30 | *Lunch*                                   |             |
+|                 | 13:30 - 14:30 | Datageneration                            | Alex        |
+|                 | 14:30 - 16:00 | Introduction to R and Rstudio             | Anders      |
+|                 | 16:00 - 18:00 | Help with setup, preaparion of data       | Anders/Alex |
+| **Tuesday**     | 09:00 - 10:00 | Clustering and DADA2                      | Alex        |
+| *OBS Room 3251* | 10:00 - 12:00 | DADA2 pipeline                            | Anders      |
+|                 | 12:00 - 13:00 | *Lunch*                                   |             |
+|                 | 13:00 - 16:00 | DADA2 continued                           | Anders      |
+|                 | 16:00 - 17:00 | Q and A, tips and hints                   | Anders      |
+| **Wednesday**   | 09:00 - 12:00 | Intro to Phyloseq and Microbiome packages | Anders      |
+|                 | 12:00 - 13:00 | *Lunch*                                   |             |
+|                 | 13:00 - 17:00 | Statistical analyses                      | Alex        |
+| **Thursday**    | 09:00 - 11:00 | Ggplot2                                   | Alex        |
+|                 | 11:00 - 12:00 | Phylogeny, EPA and pplacer                | Anders      |
+|                 | 12:00 - 13:00 | *Lunch*                                   |             |
+|                 | 13:00 - 14:00 | Phylogeny continued                       | Anders      |
+|                 | 14:00 - 15:30 | Networks                                  | Anders      |
+|                 | 15:30 - 16:00 | Questions and evaluations                 | Bente       |
