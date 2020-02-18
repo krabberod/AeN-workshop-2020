@@ -3,7 +3,7 @@
 # Example fastq files for the pipeline can be downloaded from github or here:
 # https://www.dropbox.com/s/erhdug0lun797iu/fastq.zip?dl=0
 
-### Install Packages
+### Install Packages ####
 # Skip this if you have already installed the packages
 
 install.packages("readr")     # To read and write files
@@ -39,7 +39,7 @@ library("readr")
 library("stringr")
 library("kableExtra")  # necessary for nice table formatting with knitr
 
-#### Prepare Directories
+#### Prepare Directories ####
 # setwd("~/path_to_my_directory/DADA2_pipeline")
 
 # Define the name of directories to use
@@ -64,7 +64,7 @@ primer_set_rev = c("ACTTTCGTTCTTGATYRATGA")
 primer_length_fwd <- str_length(primer_set_fwd[1])
 primer_length_rev <- str_length(primer_set_rev[1])
 
-#### 5.4 PR2 taxonomic levels
+#### 5.4 PR2 taxonomic levels 
 
 PR2_tax_levels <- c("Kingdom", "Supergroup", "Division", "Class", "Order", "Family",
                     "Genus", "Species")
@@ -95,18 +95,21 @@ for (i in 1:length(fns_R1)) {
   df <- bind_rows(df, df_one_row)
 }
 
-knitr::kable(df) # to make html table.
+# knitr::kable(df) # to make html table.
 View(df)
 
 # If you want to write the table to your working directory remove the hashtag and use:
-# write.table(df, file = 'n_seq.txt', sep='\t', row.names = FALSE, na='',
-#            quote=FALSE)
+write.table(df, file = 'n_seq.txt', sep='\t', row.names = FALSE, na='',
+            quote=FALSE)
 
 
 # plot the histogram with number of sequences
 # The plot for the example data looks kind of uninformative, why?
+
 ggplot(df, aes(x = n_seq)) + geom_histogram(alpha = 0.5, position = "identity",
                                             binwidth = 16) + xlim(9000, 11000)
+
+hist(df$n_seq)
 
 #### 5.5.3 ####
 for (i in 1:length(fns)) {
@@ -240,14 +243,19 @@ pr2_file <- paste0(database_dir, "pr2_version_4.72_dada2.fasta.gz")
 # start the process (i.e. remove hashtags), and have some coffee.
 
 
-#taxa <- assignTaxonomy(seqtab.nochim, refFasta = pr2_file, taxLevels = PR2_tax_levels,
-#                       minBoot = 0, outputBootstraps = TRUE, verbose = TRUE)
+taxa <- assignTaxonomy(seqtab.nochim, refFasta = pr2_file, taxLevels = PR2_tax_levels,
+                       minBoot = 0, outputBootstraps = TRUE, verbose = TRUE)
+
+
 #saveRDS(taxa, str_c(dada2_dir, "OsloFjord.taxa.rds"))
 
-# I have prepared a taxonomy file that I can put on github, if necessary.
-# taxa <- read.RDS(str_c(dada2_dir, "OsloFjord.taxa.rds"))
-# Seqtab.nochim_trans <- read.RDS(str_c("seqtab.nochim_trans.rds"))
 
+
+# I have prepared a taxonomy file that I can put on github, if necessary.
+
+#taxa <- readRDS(str_c(dada2_dir, "OsloFjord.taxa.rds"))
+
+# Seqtab.nochim_trans <- read.RDS(str_c("seqtab.nochim_trans.rds"))
 # Export information in tab or comma separated files
 write_tsv(as_tibble(taxa$tax), path = str_c(dada2_dir, "taxa.txt"))
 write.csv(taxa$tax, file = str_c(dada2_dir, "taxa.txt"))
@@ -278,7 +286,7 @@ df <- seqtab.nochim_18S
 seq_out <- Biostrings::DNAStringSet(df$sequence)
 
 names(seq_out) <- str_c(df$OTUNumber, df$Supergroup, df$Division, df$Class,
-                        df$Order, df$Family, df$Genus, df$Species, sep = "|")
+                        df$Order, df$Family, df$Genus, df$Species, df$Species_boot1, sep = "|")
 
 Biostrings::writeXStringSet(seq_out, str_c(blast_dir, "OsloFjord_ASV.fasta"), compress = FALSE,
                             width = 20000)
@@ -319,11 +327,11 @@ ps_dada2 <- phyloseq(OTU, sample_data(samdf), TAX)
 
 ### Saving and loading data ####
 # You can save selected objects:
-# saveRDS(ps_dada2, str_c(dada2_dir, "OsloFjord_phyloseq.rds"))
+saveRDS(ps_dada2, str_c(dada2_dir, "OsloFjord_phyloseq.rds"))
 # ps_dada2<-readRDS(str_c(dada2_dir, "OsloFjord_phyloseq.rds"))
 
 # Or save the entire workspace:
-# save.image(str_c(dada2_dir, "OsloFjord_DADA2.Rdata"))
+save.image(str_c(dada2_dir, "OsloFjord_DADA2.Rdata"))
 #
 # Can be loaded with
 # load("dada2/OsloFjord_DADA2.Rdata"")
