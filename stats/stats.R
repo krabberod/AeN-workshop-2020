@@ -11,23 +11,27 @@ library("R.utils") # nice library if you want to make and use own functions
 library("dendextend")
 library("Hmisc")
 library("corrplot")
+library("phyloseq")
+library("picante")
+
 
 # define directories and load files
 figs_dir <- "figs/"  # figures
+dada2_dir <- "dada2/"
 
 ps_dada2<-readRDS(file.path(dada2_dir, "OsloFjord_phyloseq.rds"))
-OsloFjord_phyloseq <- ps_dada2
+oslo_fjord <- ps_dada2
 
 # check phyloseq object
-sample_names(OsloFjord_phyloseq)
-otu_table(OsloFjord_phyloseq)
-tax_table(OsloFjord_phyloseq)
-rank_names(OsloFjord_phyloseq)
-sample_variables(OsloFjord_phyloseq)
+sample_names(oslo_fjord)
+otu_table(oslo_fjord)
+tax_table(oslo_fjord)
+rank_names(oslo_fjord)
+sample_variables(oslo_fjord)
 
 # add metadata
 #metadata <- read_excel("cdt-data.xlsx", sheet = "CTD")
-metadata <- read.table("CTD_data.tsv", header=T, check.names=F)	
+metadata <- read.table("CTD_data.tsv", header=T, check.names=F)
 samples <- sample_data(metadata)
 sample_names(samples)<-sample_names(OsloFjord_phyloseq)
 oslo_fjord <- phyloseq(otu_table(OsloFjord_phyloseq), tax_table(OsloFjord_phyloseq), samples)
@@ -129,7 +133,6 @@ subset_oslo_fjord <- subset_samples(oslo_fjord, sample_sums(oslo_fjord) > 3000)
 minimum_reads <- min(sample_sums(subset_oslo_fjord))
 minimum_reads
 
-
 rarefied_oslo_fjord <- rarefy_even_depth(subset_oslo_fjord, sample.size = minimum_reads,
 			rngseed = FALSE, replace = TRUE, trimOTUs = TRUE, verbose = TRUE) #Normalizing species data
 
@@ -149,18 +152,24 @@ diversity_estimates <- cbind(richness_estimates[,c(-3, -5)], pielou)
 # Calculate phylogenetic diversity
 # Phylogenetic diversity (“PD”) is a measure of biodiversity, based on phylogeny (the tree of life). Faith (1992) defined the phylogenetic diversity of a set of species as equal to the sum of the lengths of all those branches on the tree that span the members of the set.
 
+phylogenetic_tree = read_tree(file.path("phylogenetic", "OsloFjord_ASV.newick"))
+oslo_fjord = merge_phyloseq(oslo_fjord, phylogenetic_tree)
+phylogenetic_diversity <- estimate_pd(oslo_fjord)
 
 # Question D: What are the differences between the various diversity indices? What properties of the community do they determine?
 
 ### beta diversity ###
 # Background. Ordination techniques such as nMDS are used to study community turnover (beta-diversity). NMDS is particularly useful for visualizing changes in community composition (beta-diversity) since multidimensional data can be ordinated into (plotted in) two-dimensional space. Furthermore, we will add environmental data to our ordination for visual inspection of environmental co-variations with bacterial community composition. This will be combined with inspection of the environmental variable vectors and their significant co-variations with community composition (beta-diversity).
 
-qqnorm(otu_table(subset_oslo_fjord))	#Check distribution of residuals. Distribution is not normal.
-qqnorm(decostand(otu_table(subset_oslo_fjord), method="hellinger"))	#Check distribution of residuals. Better, but far from ideal.
+# Rarefy to even depth
+subset_oslo_fjord_rarefied <- rarefy_even_depth(subset_oslo_fjord)
+
+qqnorm(otu_table(subset_oslo_fjord_rarefied))	#Check distribution of residuals. Distribution is not normal.
+qqnorm(decostand(otu_table(subset_oslo_fjord_rarefied), method="hellinger"))	#Check distribution of residuals. Better, but far from ideal.
 
 #The OTU abundance data is transformed using Hellinger method. The distance matrix is then computed using a coefficient (Bray-Curtis) ignoring double zeroes since they are very numerous, uninformative and so would exaggerate similarity between samples sharing little or no OTUs.
 
-stand_asv <- decostand(otu_table(subset_oslo_fjord), method="hellinger")
+stand_asv <- decostand(otu_table(subset_oslo_fjord_rarefied), method="hellinger")
 
 #Create the nMDS object.
 asv_mds <- metaMDS(stand_asv, distance = "bray", autotransform = FALSE, try = 200)
@@ -204,23 +213,11 @@ ordiplot(asv_mds, display="sites", type="t")
 
 
 ### Fit environmental data ###
-# Fit environmental variables to the ordination. Environmental variable values must be scaled and centered since they vary in their physical dimensions. The function envfit does it by default to columns of numeric values present in the dataframe passed to the function.
-sites_mds <- metaMDS(decostand(t(otu_table(subset_oslo_fjord)), method="hellinger"), distance = "bray", autotransform = FALSE, try = 200)
-env_data <- data.frame(sample_data(subset_oslo_fjord))
-env_fit <- envfit(sites_mds, env_data[,4:13], permu=999, na.rm=T)
-
-# Check significance of environmental vector fitting
-env_fit[[1]]
-
-# Plot environmental variable vectors onto the ordination.
-ordiplot(sites_mds)
-plot(env_fit, p.max = 0.05, cex=1)	#flSP is fluorescence SeaPoint
-
 ### Check for autocorrelations in metadata ###
 # A correlation matrix is a table of correlation coefficients for a set of variables used to determine if a relationship exists between the variables. The coefficient indicates both the strength of the relationship as well as the direction (positive vs. negative correlations). In this post I show you how to calculate and visualize a correlation matrix using R.
 # Use the following code to run the correlation matrix with p-values. Note that the data has to be fed to the rcorr function as a matrix.
 
-metadata_cleaned <- metadata[c(-7, -9),c(4:11, 13, 16)]
+metadata_cleaned <- metadata[c(-7, -9),c(4:11)]
 corr_matrix <- rcorr(as.matrix(metadata_cleaned), type = "spearman")
 
 # This generates one table of correlation coefficients (the correlation matrix) and another table of the p-values. By default, the correlations and p-values are stored in an object of class type rcorr. To extract the values from this object into a useable data structure, you can use the following syntax:
@@ -238,13 +235,17 @@ dev.off()
 ### Community analysis - hierarchical clustering ###
 
 # Compute distance matrix for community composition.
-asv_dist <- vegdist(decostand(t(otu_table(subset_oslo_fjord)), method="hellinger"), method="bray")
+oslo_fjord_subset <- subset_samples(oslo_fjord, sample_sums(oslo_fjord) > 3000)
+oslo_fjord_subset <- subset_samples(oslo_fjord_subset, sample_names(oslo_fjord_subset) != "S07" & sample_names(oslo_fjord_subset) != "S09")
+oslo_fjord_subset_rarefied <- rarefy_even_depth(oslo_fjord_subset)
+
+asv_dist <- vegdist(decostand(t(otu_table(oslo_fjord_subset_rarefied)), method="hellinger"), method="bray")
 
 # Cluster communities using unweighted pair group method with arithmetic mean (UPGMA) method.
 asv_clust <- hclust(asv_dist, method="average")
 
-env_scaled <- as.matrix(scale(metadata_cleaned, scale=T, center=T))
-rownames(env_scaled)= rownames(env_data[c(1:6, 8, 10:17),])
+stand_meta = sample_data(oslo_fjord_subset)[,4:11]
+env_scaled <- as.matrix(scale(stand_meta, scale=T, center=T))
 
 # Compute distance matrix for environmental metadata.
 env_dist <- vegdist(env_scaled, method="euclidean")
@@ -267,10 +268,51 @@ dev.off()
 # Question D: Are dendrograms more similar if you use the environmental variables that fit most significantly your community composition ordination? Hint: retry the above with env_table variables you consider more relevant.
 # Question E: Did you notice anything interesting or striking from the time series? Did you observe distinct groups?
 
-### Unifrac distance ###
+# Envfit function
 
+subset_stand_asv <- decostand(t(otu_table(oslo_fjord_subset_rarefied)), method="hellinger")
+subset_asv_mds <- metaMDS(subset_stand_asv, distance = "bray", autotransform = FALSE, try = 200)
+subset_asv_mds$stress
+
+env_fit <- envfit(subset_asv_mds, env_scaled, na.rm = TRUE, permu = 999)
+envfit_table_bray <- data.frame(round((env_fit$vectors)$arrows, 3), round((env_fit$vectors)$r, 3), round((env_fit$vectors)$pvals, 3))
+colnames(envfit_table_bray) <- c("DIM 1", "DIM 2", "R", "p")
+write.csv(envfit_table_bray, file.path(figs_dir, "envfit_bray.csv"))
+
+### Unifrac distance ###
+# UniFrac is a distance metric used for comparing biological communities. It differs from dissimilarity measures such as Bray-Curtis dissimilarity in that it incorporates information on the relative relatedness of community members by incorporating phylogenetic distances between observed organisms in the computation. UniFrac measures the phylogenetic distance between sets of taxa in a phylogenetic tree as the fraction of the branch length of the tree that leads to descendants from either one environment or the other, but not both.
+
+full_unifrac_matrix <- UniFrac(oslo_fjord_subset_rarefied, weighted=TRUE, normalized=TRUE, parallel=FALSE, fast=TRUE)
+full_unifrac_dist <- as.matrix(dist(full_unifrac_matrix))
+unifrac_mds <- isoMDS(full_unifrac_dist, k = 2, tol = 1e-4, p = 2, maxit = 200) #ordination
+unifrac_mds$stress
+
+env_fit <- envfit(unifrac_mds, env_scaled, na.rm = TRUE, permu = 999)
+envfit_table_unifrac <- data.frame(round((env_fit$vectors)$arrows, 3), round((env_fit$vectors)$r, 3), round((env_fit$vectors)$pvals, 3))
+colnames(envfit_table_unifrac) <- c("DIM 1", "DIM 2", "R", "p")
+write.csv(envfit_table_unifrac, file.path(figs_dir, "envfit_unifrac.csv"))
 
 ### RDA and dbRDA ###
 
+oslo_fjord_rda <- rda(subset_stand_asv, method="hellinger", env_scaled)
+
+oslo_fjord_rda
+summary_oslo_fjord_rda <- summary(oslo_fjord_rda)
+RsquareAdj(oslo_fjord_rda)
+
+unifrac_dbRDA1 <- capscale(full_unifrac_matrix ~ ., data.frame(env_scaled))
+unifrac_dbRDA1
+RsquareAdj(unifrac_dbRDA1)
+
+unifrac_dbRDA2 <- capscale(full_unifrac_matrix ~ 1, data.frame(env_scaled))
+unifrac_dbRDA2
+
+unifrac_dbRDA <- step(unifrac_dbRDA2, scope = formula(unifrac_dbRDA1), test = "perm")
+unifrac_dbRDA
+unifrac_dbRDA$anova
+# plot(unifrac_dbRDA)
+anova(unifrac_dbRDA)
+anova.cca(unifrac_dbRDA)
+RsquareAdj(unifrac_dbRDA)
 
 
