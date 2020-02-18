@@ -25,7 +25,7 @@ When you have installed R and Rstudio, run the script called [required_packages.
 |                 | 14:30 - 16:00 | Introduction to R and Rstudio             | Anders      |
 |                 | 16:00 - 18:00 | Help with setup, preaparion of data       | Anders/Alex |
 | **Tuesday**     | 09:00 - 10:00 | Clustering and DADA2                      | Alex        |
-| *OBS Room 3251* | 10:00 - 12:00 | DADA2 pipeline                            | Anders      |
+| *OBS Room 4613* | 10:00 - 12:00 | DADA2 pipeline                            | Anders      |
 |                 | 12:00 - 13:00 | *Lunch*                                   |             |
 |                 | 13:00 - 16:00 | DADA2 continued                           | Anders      |
 |                 | 16:00 - 17:00 | Q and A, tips and hints                   | Anders      |
