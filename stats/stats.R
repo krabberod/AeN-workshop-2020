@@ -257,11 +257,14 @@ env_clust <- hclust(env_dist, method="average")
 asv_dendro = as.dendrogram(asv_clust)
 env_dendro = as.dendrogram(env_clust)
 
-# Compare dendrograms with a tanglegram.
-dl = dendlist(asv_dendro, env_dendro)
+# Compare dendrograms with a tanglegram and perform Procrustes test.
+asv_env_protest <- protest(asv_dist, env_dist, scores = "sites", permutations = how(nperm = 999))	#Pairwise comparison of distance matrices for ASV and metadata distance matrices.
+dl <- dendlist(asv_dendro, env_dendro)
 
 pdf(file = file.path(figs_dir, "dendrograms.pdf"))
-tanglegram(dl, sort = T, common_subtrees_color_lines = F, highlight_distinct_edges = F, highlight_branches_lwd = F, main_left = "Community composition", main_right = "Environmental conditions", common_subtrees_color_branches = FALSE, margin_inner = 5, margin_outer = 5, axes=F)
+tanglegram(dl, sort = T, common_subtrees_color_lines = F, highlight_distinct_edges = F, highlight_branches_lwd = F,
+main_left = "Community composition", main_right = "Environmental conditions", common_subtrees_color_branches = FALSE, margin_inner = 5, margin_outer = 5, axes=F,
+sub=paste("Procrustes test", "\n", "Correlation:", round(asv_env_protest[[6]], 4), "\n", "Significance:", asv_env_protest[13]), cex_sub = 1)
 dev.off()
 
 # Check dendrogram comparison plot in your "M:/pc/Dokumenter/" folder.
@@ -314,5 +317,27 @@ unifrac_dbRDA$anova
 anova(unifrac_dbRDA)
 anova.cca(unifrac_dbRDA)
 RsquareAdj(unifrac_dbRDA)
+
+### Removal of collinear variables ###
+# Variance inflation factor (VIF) refers to the fluctuation in beta coefficients of linear models caused by the presence of collinear variables.
+source("stats\\functions\\remove_collinear_variables.R")	#Source the R script containing the remove.collinear.variables() function.
+"""
+Linearly dependent variables are removed so as to leave only one variable of any pair or set of linearly dependent variables. Then, variables with a
+VIF above 20 (default set at 20 from ter Braak & Smilauer, 2002) are removed in the same fashion. The prior removal of linearly dependent variables is
+necessary when performing ordinary least squares regression to avoid having to invert a singular matrix. One may use singular value decomposition, ridge
+or LASSO regression to circumvent this issue, but aliased variables must be removed anyway as they are collinear. The script 'remove_collinear_variables.R'
+will only work on dataframes/matrices where the number of rows is equal to or greater than the number of columns.
+"""
+metadata_cleaned_no_coll <- remove.collinear.variables(metadata_cleaned)
+metadata_cleaned_no_coll
+
+### Variation partitioning ###
+# Variation partitioning can be used to discriminate the unique and shared contributions of selected explanatory variables to one or more response variables.
+# Matching rows removed from the metadata dataframe must also be removed from the ASV table if both are to be used for variation paritioning.
+part <- varpart(asv_dist, metadata_cleaned_no_coll$DoY, metadata_cleaned_no_coll[,2:3], metadata_cleaned_no_coll[,5:6])	#The previously computed distance matrix for samples by ASVs is used.
+part
+plot(part, bg = c("red", "blue", "green"), alpha=70, Xnames=c("DoY", "Fluorescence", "Oxygen"), cutoff=0, digits=4)
+
+
 
 
