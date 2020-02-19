@@ -8,19 +8,22 @@ library("readxl")    # To read Excel files into R
 library("ggplot2")   # for high quality graphics
 
 # we can use the phyloseq object created at the end of the Dada2 pipline
+# A detailed tutorial for importing data and creating phyloseq objects
+# from other formats excel, text files, csv, phylogenetic trees etc:
+# https://joey711.github.io/phyloseq/import-data.html
 
 OsloFjord_phyloseq <- readRDS("../DADA2_pipeline/dada2/OsloFjord_phyloseq.rds")
 
-# OsloFjord_phyloseq = ps_dada2 # might need to use this line
-OsloFjord_phyloseq
+# The OsloFjord_phyloseq object is the same as the ps_dada2 object we created yesterday
 
-
-# A detailed tutorial for importing data and creating phyloseq objects
-# https://joey711.github.io/phyloseq/import-data.html
 
 ### Inspect the phyloseq object ####
 # The phyloseq object contains a lot of information:
 # Read abundance table, taxonomy, and metadata
+
+OsloFjord_phyloseq
+str(OsloFjord_phyloseq)
+
 
 sample_names(OsloFjord_phyloseq)
 otu_table(OsloFjord_phyloseq)
@@ -39,7 +42,7 @@ oslo_fjord <- phyloseq(otu_table(OsloFjord_phyloseq),tax_table(OsloFjord_phylose
 
 sample_data(oslo_fjord)
 
-# Function to remove samples, these have NA for all ctd-data. Not executed
+# One way to remove to remove samples from the phyloseq, object
 oslo_fjord<-subset_samples(oslo_fjord, sample_names(OsloFjord_phyloseq) != "S07")
 oslo_fjord<-subset_samples(oslo_fjord, sample_names(oslo_fjord) != "S09")
 
@@ -64,8 +67,10 @@ oslo_fjord <- transform_sample_counts(oslo_fjord, standf)
 
 ### Bar graphs ####
 # Phyloseq contains wrappers for plotting functions
+plot(oslo_fjord)
 plot_bar(oslo_fjord, fill = "Division")
 plot_bar(oslo_fjord, fill = "Supergroup")
+
 
 # Make the bargraph nicer by removing OTUs boundaries.
 # This is done by adding ggplot2 modifier.
@@ -73,8 +78,8 @@ plot_bar(oslo_fjord, fill = "Supergroup")
 plot_bar(oslo_fjord, fill = "Division") +
   geom_bar(aes(color=Division, fill=Division), stat="identity", position="stack")
 
-# To regroup samples that are from different fractions (could be depth/season/other metadata)
-oslo_fjord_year <- merge_samples(oslo_fjord, "Year")
+# To regroup samples that are from different years (could be depth/season/other metadata)
+oslo_fjord_year <- merge_samples(oslo_fjord, "Year", fun=mean)
 plot_bar(oslo_fjord_year, fill = "Supergroup") +
   geom_bar(aes(color=Supergroup, fill=Supergroup), stat="identity", position="stack")
 
@@ -97,8 +102,8 @@ oslo_fjord_abund
 plot_heatmap(oslo_fjord_abund, method = "NMDS", distance = "bray")
 
 # It is possible to use different distances and different multivaraite methods.
-# For example Jaccard distance and MDS and label OTUs with Class, order by Class.
-# We can also change the Palette (the default palette is a bit ugly…).
+# For example Jaccard distance, MDS and label OTUs with Class.
+# We can also change the colors palette.
 
 plot_heatmap(oslo_fjord_abund, method = "MDS", distance = "(A+B-2*J)/(A+B-J)", #
              taxa.label = "Genus", taxa.order = "Genus",
@@ -138,6 +143,17 @@ plot_net(oslo_fjord_abund, distance = "(A+B-2*J)/(A+B)", type = "taxa",
          maxdist = 0.7, color="Class", point_label="Genus")
 plot_net(oslo_fjord_abund, distance = "(A+B-2*J)/(A+B)", type = "taxa",
          maxdist = 0.8, color="Class", point_label="Genus")
+
+# look at the help for phyloseq and see if you see any interesting functions
+# that you might want to try
+help(package = "phyloseq")
+
+# Can you for instance make a histogram of the total number ofreads per sample 
+# hint see ?sample_sums()
+# What about read abundace for otus summed for all samples ?taxa_sums()
+# Which otu has highest abundance
+# Which sample has most reads?
+# Can you subsett the otu table based on the year?
 
 #### Microbiome ####
 # Another package with many interesting functions is Microbiome. It is an extension to phyloseq
@@ -186,3 +202,6 @@ oslo_fjord_autotrophs.melt %>%
   theme(axis.title.x = element_blank() ,axis.text.x  = element_text(angle=45, vjust=0.5, colour="darkgrey")) +
   ylab("Relative Abundance\n") +
   ggtitle("All groups")
+
+
+
