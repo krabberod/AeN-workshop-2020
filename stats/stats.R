@@ -33,8 +33,8 @@ sample_variables(oslo_fjord)
 #metadata <- read_excel("cdt-data.xlsx", sheet = "CTD")
 metadata <- read.table("CTD_data.tsv", header=T, check.names=F)
 samples <- sample_data(metadata)
-sample_names(samples)<-sample_names(OsloFjord_phyloseq)
-oslo_fjord <- phyloseq(otu_table(OsloFjord_phyloseq), tax_table(OsloFjord_phyloseq), samples)
+sample_names(samples)<-sample_names(oslo_fjord)
+oslo_fjord <- phyloseq(otu_table(oslo_fjord), tax_table(oslo_fjord), samples)
 saveRDS(oslo_fjord, file.path("stats", "OsloFjord_phyloseq.rds"))
 
 ### Rarefaction curves ###
@@ -152,7 +152,7 @@ diversity_estimates <- cbind(richness_estimates[,c(-3, -5)], pielou)
 # Calculate phylogenetic diversity
 # Phylogenetic diversity (“PD”) is a measure of biodiversity, based on phylogeny (the tree of life). Faith (1992) defined the phylogenetic diversity of a set of species as equal to the sum of the lengths of all those branches on the tree that span the members of the set.
 
-phylogenetic_tree = read_tree(file.path("phylogenetic", "OsloFjord_ASV.newick"))
+phylogenetic_tree = read_tree(file.path("Phylogenetics", "OsloFjord_ASV.newick"))
 oslo_fjord = merge_phyloseq(oslo_fjord, phylogenetic_tree)
 phylogenetic_diversity <- estimate_pd(oslo_fjord)
 
@@ -162,14 +162,14 @@ phylogenetic_diversity <- estimate_pd(oslo_fjord)
 # Background. Ordination techniques such as nMDS are used to study community turnover (beta-diversity). NMDS is particularly useful for visualizing changes in community composition (beta-diversity) since multidimensional data can be ordinated into (plotted in) two-dimensional space. Furthermore, we will add environmental data to our ordination for visual inspection of environmental co-variations with bacterial community composition. This will be combined with inspection of the environmental variable vectors and their significant co-variations with community composition (beta-diversity).
 
 # Rarefy to even depth
-subset_oslo_fjord_rarefied <- rarefy_even_depth(subset_oslo_fjord)
+subset_oslo_fjord_rarefied <- t(rarefy_even_depth(subset_oslo_fjord))
 
 qqnorm(otu_table(subset_oslo_fjord_rarefied))	#Check distribution of residuals. Distribution is not normal.
 qqnorm(decostand(otu_table(subset_oslo_fjord_rarefied), method="hellinger"))	#Check distribution of residuals. Better, but far from ideal.
 
 #The OTU abundance data is transformed using Hellinger method. The distance matrix is then computed using a coefficient (Bray-Curtis) ignoring double zeroes since they are very numerous, uninformative and so would exaggerate similarity between samples sharing little or no OTUs.
 
-stand_asv <- decostand(otu_table(subset_oslo_fjord_rarefied), method="hellinger")
+stand_asv <- decostand(otu_table(subset_oslo_fjord_rarefied), method="hellinger"))
 
 #Create the nMDS object.
 asv_mds <- metaMDS(stand_asv, distance = "bray", autotransform = FALSE, try = 200)
