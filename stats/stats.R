@@ -328,7 +328,7 @@ necessary when performing ordinary least squares regression to avoid having to i
 or LASSO regression to circumvent this issue, but aliased variables must be removed anyway as they are collinear. The script 'remove_collinear_variables.R'
 will only work on dataframes/matrices where the number of rows is equal to or greater than the number of columns.
 """
-metadata_cleaned_no_coll <- remove.collinear.variables(metadata_cleaned)
+metadata_cleaned_no_coll <- remove.collinear.variables(metadata[c(-7,-9), c(4:11, 16)])
 metadata_cleaned_no_coll
 
 ### Variation partitioning ###
