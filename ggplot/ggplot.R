@@ -247,21 +247,21 @@ names = rownames(rda_scores_species)
 names
 melted_tax_table$Var1
 
-rda_plot_species <- ggplot(data.frame(rda_scores_species), aes(x = PC1, y = PC2, color = names)) +
+rda_plot_species <- ggplot(data.frame(rda_scores_species), aes(x = RDA1, y = RDA2, color = names)) +
                 geom_point(size = 1, alpha = .5) +
                 scale_color_manual(values = division_colors) +
 				xlab("RDA1") +
 				ylab("RDA2")
 
-mult = 0.2
+mult = 0.1
 
 rda_biplot_division <- rda_plot_species +
-  geom_segment(data = data.frame(rda_scores_env), aes(x = 0, xend = mult * PC1,
-                    y = 0, yend = mult * PC2),
+  geom_segment(data = data.frame(rda_scores_env), aes(x = 0, xend = mult * RDA1,
+                    y = 0, yend = mult * RDA2),
                 arrow = arrow(length = unit(0.125, "cm")), colour = "red", alpha = .4, size = 0.1) +
   geom_text(data = data.frame(rda_scores_env),
-            aes(x = mult * PC1, y = mult * PC2, label = rownames(rda_scores_env),
-                hjust = 0.5 * (1-sign(PC1)), vjust = 0.5 * (1-sign(PC2))),
+            aes(x = mult * RDA1, y = mult * RDA2, label = rownames(rda_scores_env),
+                hjust = 0.5 * (1-sign(RDA1)), vjust = 0.5 * (1-sign(RDA2))),
                 color = "red", size = 1.5, alpha = .4) +
   coord_cartesian(xlim = c(-0.25, 0.52), ylim = c(-0.22, 0.2)) +
   xlab("RDA1") +
