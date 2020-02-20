@@ -12,23 +12,29 @@
 library("ggplot2")
 library("phyloseq")
 
+setwd("/cluster/projects/nn9745k/01_raw_data/00_Saga_workshop")
+
 stats_dir <- "stats/"
 figs_dir <- "figs/"
-dir.create(stats_dir)
-dir.create(figs_dir)
+dada2_dir <- "dada2/"
+# dir.create(stats_dir)
+# dir.create(figs_dir)
 
 CTD_data <- read.table("CTD_data.tsv", header=T, check.names=F)	#flWL is fluorescence wet lab
-oslo_fjord <- readRDS(str_c(dada2_dir, "OsloFjord_phyloseq.rds"))
+oslo_fjord <- readRDS(file.path(dada2_dir, "OsloFjord_phyloseq.rds"))
 metadata <- sample_data(oslo_fjord)
-metadata$flWL <- CTD_data$flWL
+metadata$Date <- CTD_data$Date
 metadata$flWL <- CTD_data$flWL
 metadata$DoY <- CTD_data$DoY
 metadata$Year <- CTD_data$Year
 colnames(metadata)
 
-# Init ggplot
-ggplot(metadata, aes(x = Date, y = flWL))  # Date and flWL are columns in 'metadata'
+oslo_fjord <- merge_phyloseq(oslo_fjord, sample_data(metadata))
 
+# Init ggplot
+pdf(file.path(figs_dir, "flWL.pdf"), width=120/25.4, height=160/25.4, pointsize = 6)
+  ggplot(metadata, aes(x = Date, y = flWL))  # Date and flWL are columns in 'metadata'
+dev.off()
 # A blank ggplot is drawn. Even though the x and y are specified, there are no points or lines in it. This is because, ggplot doesn’t assume that you meant a scatterplot or a line chart to be drawn. I have only told ggplot what dataset to use and what columns should be used for X and Y axis. I haven’t explicitly asked it to draw any points.
 
 # Also note that aes() function is used to specify the X and Y axes. That’s because, any information that is part of the source dataframe has to be specified inside the aes() function.
@@ -42,7 +48,7 @@ ggplot(metadata, aes(x = Date, y = flWL)) + geom_point()
 
 # Like geom_point(), there are many such geom layers which we will see in a subsequent part in this tutorial series. For now, let’s just add a smoothing layer using geom_smooth(method='lm'). Since the method is set as lm (short for linear model), it draws the line of best fit.
 
-g <- ggplot(metadata, aes(x = Date, y = flWL)) + geom_point() + geom_smooth(method="lm")  # set se=FALSE to turnoff confidence bands
+g <- ggplot(metadata, aes(x = DoY, y = flWL)) + geom_point() + geom_smooth(method="lm")  # set se=FALSE to turnoff confidence bands
 
 plot(g)
 
@@ -58,7 +64,7 @@ plot(g)
 # This can be done by xlim() and ylim(). You can pass a numeric vector of length 2 (with max and min values) or just the max and min values itself.
 
 # Delete the points outside the limits
-#g + xlim(c(42400, 43100)) + ylim(c(0, 15))   # deletes points
+g + xlim(c(120, 240)) + ylim(c(0, 1))   # deletes points
 
 # In this case, the chart was not built from scratch but rather was built on top of g. This is because, the previous plot was stored as g, a ggplot object, which when called will reproduce the original plot. Using ggplot, you can add more layers, themes and other settings on top of this plot.
 
@@ -68,7 +74,7 @@ plot(g)
 # The other method is to change the X and Y axis limits by zooming in to the region of interest without deleting the points. This is done using coord_cartesian().
 
 # Let’s store this plot as g1.
-g1 <- g + coord_cartesian(xlim=c(42400, 43100), ylim=c(0, 15))  # zooms in
+g1 <- g + coord_cartesian(xlim=c(120, 240), ylim=c(0, 1))  # zooms in
 plot(g1)
 
 # Since all points were considered, the line of best fit did not change.
@@ -109,9 +115,12 @@ plot(gg)
 
 gg + theme(legend.position="None")  # remove legend
 
+# Use another theme for plotting
+gg + theme_bw()
+
 # Also, You can change the color palette entirely.
 
-#gg + scale_colour_brewer(palette = "Set1")  # change color palette
+# gg + scale_colour_brewer(palette = "Set1")  # change color palette
 
 # More of such palettes can be found in the RColorBrewer package
 
@@ -178,7 +187,7 @@ rownames(tax_table)
 library(reshape)
 melted_tax_table = melt(tax_table)
 colnames(melted_tax_table) <- c("Var1", "Var2", "value")
-melted_tax_table <- arrange(melted_tax_table, Var1, desc(value))
+melted_tax_table <- dplyr::arrange(melted_tax_table, Var2, desc(value))
 melted_tax_table$Var2 <- factor(melted_tax_table$Var2 , levels = unique(melted_tax_table$Var2))
 
 division_colors <- setNames(color_palette, levels(melted_tax_table$Var1))
@@ -203,8 +212,21 @@ dev.off()
 
 ### Making a nice RDA plot ###
 
-metadata1 = data.frame(sample_data(classGlom))
-metadata1 = metadata1[,c()]
+classGlom_subset <- subset_samples(classGlom, sample_names(classGlom) != "S07" & sample_names(classGlom) != "S09")
+
+metadata1 = data.frame(sample_data(classGlom_subset))
+metadata1 = metadata1[,c(-1,-5)]
+
+taxon_table = otu_table(classGlom_subset)
+tax_matrix = as(tax_table(classGlom_subset), 'matrix')
+rownames(taxon_table) = tax_matrix[,taxonomy]
+tax_table = prop.table(taxon_table, margin = 2)*100
+tax_table <- tax_table[order(rowSums(-taxon_table)),]
+rowSums(taxon_table)
+dim(taxon_table)
+tax_table <- tax_table[1:15,]
+rownames(tax_table)
+
 
 library(vegan)
 rda_div_meta <- rda(decostand(t(tax_table), method="hellinger"), as.matrix(metadata1))
@@ -214,8 +236,9 @@ summary_rda_div_meta <- summary(rda_div_meta)
 RsquareAdj(rda_div_meta)
 
 library(ggfortify)
-#p_rda <- autoplot(rda_div_meta, layers = c("species", "biplot"), legend.position = "none")
+# p_rda <- autoplot(rda_div_meta, layers = c("species", "biplot"), legend.position = "none")
 p_rda <- biplot(rda_div_meta, scaling = "species", display = c("sites", "species"))
+vegan::biplot(rda_div_meta)
 
 rda_scores_env = vegan::scores(rda_div_meta, display = "sites")
 rda_scores_species = vegan::scores(rda_div_meta, display = "species")
@@ -246,11 +269,11 @@ rda_biplot_division <- rda_plot_species +
   theme(plot.background = element_rect(fill = "white"),
         panel.background = element_rect(fill = "white"),
         panel.grid = element_line(color = "grey"),
-		legend.position = "bottom", 
-		legend.text=element_text(size=4, 
-		margin = margin(t = 0)), 
-		legend.spacing.x = unit(0, 'cm'), 
-		legend.spacing.y = unit(0, 'cm'), 
+		legend.position = "bottom",
+		legend.text=element_text(size=4,
+		margin = margin(t = 0)),
+		legend.spacing.x = unit(0, 'cm'),
+		legend.spacing.y = unit(0, 'cm'),
 		legend.key.height=unit(0.1, 'lines'),
 		panel.grid.minor = element_blank(),
 		panel.grid.major = element_blank(),
