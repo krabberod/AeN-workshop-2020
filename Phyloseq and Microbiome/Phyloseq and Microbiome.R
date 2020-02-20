@@ -36,8 +36,11 @@ sample_variables(OsloFjord_phyloseq)
 # Loading ctd data from excel
 
 samples_df <- read_excel("cdt-data.xlsx", sheet = "CTD")
+samples_df <- read.table("CTD_data.tsv", header =T, row.names = 1)
+
+
 samples <- sample_data(samples_df)
-sample_names(samples)<-sample_names(OsloFjord_phyloseq)
+#sample_names(samples)<-sample_names(OsloFjord_phyloseq)
 oslo_fjord <- phyloseq(otu_table(OsloFjord_phyloseq),tax_table(OsloFjord_phyloseq),samples)
 
 sample_data(oslo_fjord)
@@ -99,7 +102,12 @@ plot_heatmap(oslo_fjord, method = "NMDS", distance = "bray")
 oslo_fjord_abund <- filter_taxa(oslo_fjord, function(x) sum(x > total*0.10) > 0, TRUE)
 oslo_fjord_abund
 
+
+pdf()
 plot_heatmap(oslo_fjord_abund, method = "NMDS", distance = "bray")
+dev.off()
+
+
 
 # It is possible to use different distances and different multivaraite methods.
 # For example Jaccard distance, MDS and label OTUs with Class.
@@ -136,12 +144,11 @@ plot_ordination(oslo_fjord, oslo_fjord.ord, type="taxa", color="Class",
   facet_wrap(~Division, 3)
 
 # ordination of samples:
-plot_ordination(oslo_fjord, oslo_fjord.ord, type="samples", color="fraction",
-                 shape="level", title="Samples") + geom_point(size=3)
+plot_ordination(oslo_fjord_abund, oslo_fjord.ord, type="samples")
 
 plot_net(oslo_fjord_abund, distance = "(A+B-2*J)/(A+B)", type = "taxa",
          maxdist = 0.7, color="Class", point_label="Genus")
-plot_net(oslo_fjord_abund, distance = "(A+B-2*J)/(A+B)", type = "taxa",
+plot_net(oslo_fjord_abund, distance = "jacca", type = "taxa",
          maxdist = 0.8, color="Class", point_label="Genus")
 
 # look at the help for phyloseq and see if you see any interesting functions
@@ -202,6 +209,9 @@ oslo_fjord_autotrophs.melt %>%
   theme(axis.title.x = element_blank() ,axis.text.x  = element_text(angle=45, vjust=0.5, colour="darkgrey")) +
   ylab("Relative Abundance\n") +
   ggtitle("All groups")
+
+
+sample(colorRampPalette(brewer.pal(8,"Dark2"))(20))
 
 
 
