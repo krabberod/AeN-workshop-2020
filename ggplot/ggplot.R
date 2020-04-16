@@ -240,6 +240,7 @@ library(ggfortify)
 p_rda <- biplot(rda_div_meta, scaling = "species", display = c("sites", "species"))
 vegan::biplot(rda_div_meta)
 
+rda_scores <- ggvegan::fortify(rda_div_meta, axes = 1:2)
 rda_scores_env = vegan::scores(rda_div_meta, display = "sites")
 rda_scores_species = vegan::scores(rda_div_meta, display = "species")
 
