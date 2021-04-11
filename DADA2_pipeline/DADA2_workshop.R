@@ -129,6 +129,9 @@ for (i in 1:length(fns)) {
          scale = 1, units = "cm")
 }
 
+
+
+
 #### 5.6.1
 filt_R1 <- str_c(filtered_dir, sample.names, "_R1_filt.fastq")
 filt_R2 <- str_c(filtered_dir, sample.names, "_R2_filt.fastq")
